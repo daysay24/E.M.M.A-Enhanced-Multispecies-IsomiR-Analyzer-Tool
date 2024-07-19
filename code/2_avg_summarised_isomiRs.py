@@ -3,13 +3,13 @@ import os
 
 def get_grouped_type(t):
     if t == 'iso_3p_only':
-        return '3p'
+        return "3'isomiR"
     elif t == 'iso_5p_only':
-        return '5p'
+        return "5'isomiR"
     elif t in ['iso_5p-iso_snp-iso_3p', 'iso_5p-iso_multi_snp-iso_3p']:
-        return 'both'
+        return 'Both end isomiR'
     elif t == 'mirna_exact':
-        return 'canonical'
+        return 'Canonical'
     else: 
         return 'Others'
 
@@ -90,35 +90,3 @@ for group in group_folders:
     group_df = group_df[['mirna_name', 'tag_sequence', 'grouped_type', 'type_nt', 'rpm', 'unique_tag']]
     # Export to csv file 
     group_df.to_csv(f'{path_avg_replicate_output_folder}/{group}.csv', index=False)
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# # calculat the rpm for each isomiR
-# grouped_types = group_df.groupby('type')
-# for type, type_group in grouped_types:
-#     # Group by type and sum normalised columns 

@@ -16,7 +16,7 @@ def process_graph1_data():
         # Select a subset of important columms 
         type_df = avg_summarised_isomiRs_df[['grouped_type', 'rpm']]
         # Add a new column type: if grouped_type is canonical, type is miR. otherwise, type is miR
-        type_df['type'] = type_df['grouped_type'].apply(lambda gt: 'miR' if gt == 'canonical' else 'isomiR')
+        type_df['type'] = type_df['grouped_type'].apply(lambda gt: 'Canonical' if gt == 'Canonical' else 'IsomiR')
         # Drop grouped_type column 
         type_df = type_df.drop(columns=['grouped_type'])
         # Group by type column and sum the rpm values
@@ -127,6 +127,8 @@ def process_graph5_data():
             all_group_df = avg_nt_summarised_alignment_df
         else:
             all_group_df = pd.concat([all_group_df, avg_nt_summarised_alignment_df], ignore_index=True)
+    # Capitalise nucleotides 
+    all_group_df['Nucleotide'] = all_group_df['Nucleotide'].str.upper()
     all_group_df.to_csv(f'{path_graph_processed_data_folder}/graph_5_data.csv', index=False)
 
 

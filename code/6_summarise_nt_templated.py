@@ -16,9 +16,9 @@ def summarise_nt_alignment(path_nt_alignment_file, path_summarised_nt_alignment_
     nt_alignment = pd.read_csv(path_nt_alignment_file)
 
     # create a list of columns for extension positions at 5p
-    extension_5p_cols = [ f"5e{i + 1}" for i in range(max_nt_diff_5p)]
+    extension_5p_cols = [ f"5'e{i + 1}" for i in range(max_nt_diff_5p)]
     # create a list of columns for extension positions at 3p
-    extension_3p_cols = [ f"3e{i + 1}" for i in range(max_nt_diff_3p)]
+    extension_3p_cols = [ f"3'e{i + 1}" for i in range(max_nt_diff_3p)]
     # extension cols 
     extension_cols = extension_5p_cols + extension_3p_cols
 
@@ -39,9 +39,9 @@ def summarise_templated_alignment(path_templated_alignment_file, path_summarised
     # Read the templated alignment replicate file 
     templated_alignment = pd.read_csv(path_templated_alignment_file)
     # create a list of columns for extension positions at 5p
-    extension_5p_cols = [ f"5e{i + 1}" for i in range(max_nt_diff_5p)]
+    extension_5p_cols = [ f"5'e{i + 1}" for i in range(max_nt_diff_5p)]
     # create a list of columns for extension positions at 3p
-    extension_3p_cols = [ f"3e{i + 1}" for i in range(max_nt_diff_3p)]
+    extension_3p_cols = [ f"3'e{i + 1}" for i in range(max_nt_diff_3p)]
     # extension cols 
     extension_cols = extension_5p_cols + extension_3p_cols
 
@@ -99,4 +99,4 @@ for nt_group, templated_group in zip(nt_group_folders, templated_group_folders):
                                f'{path_summarised_templated_alignment_output_folder}/{templated_group}/{templated_rep_file}',
                                max_nt_diff_5p,
                                max_nt_diff_3p)
-                                                                                                 
+                                                                                                

@@ -1,119 +1,167 @@
 library(ggplot2)
-library(scales)
+library(patchwork)
 library(dplyr)
-library(gridExtra)
+library(ggrepel)
 
-# create graph folder 
+# Create graph folder 
 dir.create(file.path('../data/graphs/'))
 
 # Visualise graph 1
-sub.graphs.1 <- list()
 graph.data.1 <- read.csv('../data/8_graph_processed_data/graph_1_data.csv')
+names(graph.data.1)[names(graph.data.1) == "type"] <- "Type"
 graph.data.1$group<-as.factor(graph.data.1$group)
-sub.graphs.1[[1]] <- ggplot(data = graph.data.1, aes(x = group, y = rpm, group = type, color = type)) +
+graph.1 <- ggplot(data = graph.data.1, aes(x = group, y = rpm, group = Type, color = Type)) +
   geom_line() + 
   geom_point() + 
   theme_bw()+
-  theme(legend.text = element_text(size=14),
-        legend.title = element_blank(),
-        axis.title=element_text(size=14), 
-        axis.text = element_text(size=14))
-sub.graphs.1[[2]] <- ggplot(data = graph.data.1, aes(x = group, y = relative_abundance, group = type, color = type)) +
+  theme(legend.title = element_text(size = 10, face = "bold"), 
+        legend.text = element_text(size = 9), 
+        axis.text = element_text(size = 9), 
+        axis.title = element_text(size = 10), 
+        plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt"))
+graph.1 <- graph.1 + ggplot(data = graph.data.1, aes(x = group, y = relative_abundance, group = Type, color = Type)) +
   geom_line() + 
   geom_point() + 
-  theme_bw()+
-  theme(legend.text = element_text(size=14),
-        legend.title = element_blank(),
-        axis.title=element_text(size=14), 
-        axis.text = element_text(size=14))
-#do.call('grid.arrange', c(sub.graphs.1, ncol=2))
-graph.1 <- grid.arrange(grobs=sub.graphs.1, ncol = 2)
-ggsave(file='../data/graphs/graph_1.pdf', graph.1)
+  ylab("%") +
+  theme_bw() +
+  theme(legend.title = element_text(size = 10, face = "bold"), 
+        legend.text = element_text(size = 9), 
+        axis.text = element_text(size = 9),
+        axis.title = element_text(size = 10),
+        plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt")) 
+graph.1 <- graph.1 + 
+  plot_layout(ncol = 2, guides = "collect")  
+ggsave(file='../data/graphs/graph_1.pdf', plot = graph.1, height = 5, width = 10)
 
 # Visualise graph 2
-sub.graphs.2 <- list()
 graph.data.2 <- read.csv('../data/8_graph_processed_data/graph_2_data.csv')
+names(graph.data.2)[names(graph.data.2) == "grouped_type"] <- "Type"
 grouped.graph.data.2 <- graph.data.2 %>% group_by(group) %>% group_data() 
 grouped.graph.data.2 <- as.data.frame(grouped.graph.data.2)
-graph.count.2 = 1
+graph.2 <- NULL
+group.scaling <- length(unique(graph.data.2[, 'group'])) / 2 
+
 for (row in 1:nrow(grouped.graph.data.2)) {
   group.name = grouped.graph.data.2[row,'group']
   indexes = unlist(grouped.graph.data.2[row,'.rows'])
   sub.graph.data.2 <- graph.data.2[indexes,]
   
-  sub.graphs.2[[graph.count.2]] <- ggplot(sub.graph.data.2, aes(x="", y=rpm, fill=grouped_type)) +
-    geom_bar(stat="identity", width=1, color="white") +
-    coord_polar("y", start=0) +
-    theme_void() +
-    geom_text(aes(label = paste(round(rpm/sum(rpm)*100,1), "%")),
-              position = position_stack(vjust = 0.5), color="white")+
-    ggtitle(paste(group.name, "isomiRNAs (rpm)", sep=" "))+
-    theme(plot.title = element_text(hjust = 0.5))
-  graph.count.2 = graph.count.2 + 1 
+  if (is.null(graph.2)) {
+    graph.2 <- ggplot(sub.graph.data.2, aes(x="", y=rpm, fill=Type)) +
+      geom_bar(stat="identity", width=1, color="white") +
+      coord_polar("y", start=0) +
+      theme_void() +
+      geom_label_repel(aes(label = paste(round(unique_tag/sum(unique_tag)*100,1), "%")),
+                       color="white", direction = "y", position = position_stack(vjust = .5), size = 3.5, show.legend = FALSE)+
+      ggtitle(paste(group.name, "isomiRNAs (rpm)", sep=" "))+
+      theme(plot.title = element_text(hjust = 0.5, size = 12.5, face = "bold"), 
+            legend.title = element_text(size = 10, face = "bold"), 
+            legend.text = element_text(size = 9))
+  } else {
+    graph.2 <- graph.2 + ggplot(sub.graph.data.2, aes(x="", y=rpm, fill=Type)) +
+      geom_bar(stat="identity", width=1, color="white") +
+      coord_polar("y", start=0) +
+      theme_void() +
+      geom_label_repel(aes(label = paste(round(unique_tag/sum(unique_tag)*100,1), "%")),
+                       color="white", position = position_stack(vjust = .5), size = 3.5, show.legend = FALSE)+
+      ggtitle(paste(group.name, "isomiRNAs (rpm)", sep=" "))+
+      theme(plot.title = element_text(hjust = 0.5, size = 12.5, face = "bold"), 
+            legend.title = element_text(size = 10, face = "bold"),
+            legend.text = element_text(size = 9))
+  }
   
-  sub.graphs.2[[graph.count.2]] <- ggplot(sub.graph.data.2, aes(x="", y=unique_tag, fill=grouped_type)) +
+  graph.2 <- graph.2 + ggplot(sub.graph.data.2, aes(x="", y=unique_tag, fill=Type)) +
     geom_bar(stat="identity", width=1, color="white") +
     coord_polar("y", start=0) +
     theme_void() +
-    geom_text(aes(label = paste(round(unique_tag/sum(unique_tag)*100,1), "%")),
-              position = position_stack(vjust = 0.5), color="white")+
+    geom_label_repel(aes(label = paste(round(unique_tag/sum(unique_tag)*100,1), "%")),
+               color="white", position = position_stack(vjust = .5), size = 3.5, show.legend = FALSE)+
     ggtitle(paste(group.name, "isomiRNAs (unique tag)", sep=" "))+
-    theme(plot.title = element_text(hjust = 0.5))
-  graph.count.2 = graph.count.2 + 1 
+    theme(plot.title = element_text(hjust = 0.5, size = 12.5, face = "bold"),
+          legend.title = element_text(size = 10, face = "bold"),
+          legend.text = element_text(size = 9))
 }
-graph.2 <- grid.arrange(grobs=sub.graphs.2, ncol = 2)
-ggsave(file='../data/graphs/graph_2.pdf', graph.2)
+graph.2 <- graph.2 + 
+  plot_layout(ncol = 2, guides = "collect")
+ggsave(file='../data/graphs/graph_2.pdf', plot = graph.2, width = 10, height = 10 * group.scaling)
 
 # Visualise graph 3
-sub.graphs.3 <- list()
 graph.data.3 <- read.csv('../data/8_graph_processed_data/graph_3_data.csv')
-grouped.graph.data.3 <- graph.data.3 %>% group_by(group) %>% group_data() 
-grouped.graph.data.3 <- as.data.frame(grouped.graph.data.3)
-graph.count.3 = 1
-for (row in 1:nrow(grouped.graph.data.3)) {
-  group.name = grouped.graph.data.3[row,'group']
-  indexes = unlist(grouped.graph.data.3[row,'.rows'])
-  sub.graph.data.3 <- graph.data.3[indexes,]
+names(graph.data.3)[names(graph.data.3) == "type_nt"] <- "Type"
+ends <- list("All isomiRs", "3'isomiRs", "5'isomiRs")
+graph.3 <- NULL
+group.scaling <- length(unique(graph.data.3[, 'group'])) / 2 
+type_nt.scaling <- length(unique(graph.data.3[, 'Type'])) / 20 
+for (end in ends) {
+  sub.graph.data.3 <- NULL
+  if (end == 'All isomiRs') {
+    sub.graph.data.3 <- graph.data.3
+  } else {
+    sub.graph.data.3 <- graph.data.3[which(graph.data.3$end == end), ] 
+  }
   
-  sub.graphs.3[[graph.count.3]] <- ggplot(data=sub.graph.data.3, aes(x=group, y=rpm, fill=type_nt)) + 
+  if (is.null(graph.3)) {
+    graph.3 <- ggplot(data=sub.graph.data.3, aes(x=group, y=rpm, fill=Type)) + 
+      ggtitle(paste(end, "(rpm)", sep=" ")) + 
+      geom_bar(position = "fill", stat="identity") + 
+      ylab("") +  
+      xlab("") +
+      theme_bw()+
+      theme(axis.ticks.x=element_blank(), 
+            panel.grid.major.x = element_blank(),
+            panel.grid.major.y = element_blank(),
+            plot.title = element_text(size = 25, face = "bold"), 
+            axis.text = element_text(size = 18),
+            legend.title = element_text(size = 20, face = "bold"),
+            legend.text = element_text(size = 18),
+            plot.margin = unit(c(17,17,17,17), "pt")) + 
+      scale_y_continuous(labels = scales::percent) 
+  } else {
+    graph.3 <- graph.3 + ggplot(data=sub.graph.data.3, aes(x=group, y=rpm, fill=Type)) + 
+      ggtitle(paste(end, "(rpm)", sep=" ")) +
+      geom_bar(position = "fill", stat="identity") + 
+      ylab("") +  
+      xlab("") +
+      theme_bw()+
+      theme(axis.ticks.x=element_blank(), 
+            panel.grid.major.x = element_blank(), 
+            panel.grid.major.y = element_blank(),
+            plot.title = element_text(size = 25, face = "bold"),
+            axis.text = element_text(size = 18),
+            legend.title = element_text(size = 20, face = "bold"),
+            legend.text = element_text(size = 18),
+            plot.margin = unit(c(17,17,17,17), "pt")) + 
+      scale_y_continuous(labels = scales::percent) 
+  }
+  graph.3 <- graph.3 + ggplot(data=sub.graph.data.3, aes(x=group, y=unique_tag, fill=Type)) + 
+    ggtitle(paste(end, "(unique tag)", sep=" ")) +
     geom_bar(position = "fill", stat="identity") + 
-    theme_bw()+
-    theme(axis.ticks.x=element_blank()) + 
-    theme(panel.grid.major.x = element_blank())+ 
-    theme(panel.grid.major.y = element_blank()) + 
     ylab("") +  
-    xlab(" ") +
-    theme(axis.title.y = element_text(size = 11, colour = "black"))+ 
-    theme(axis.text.y = element_text(size = 11, colour = "black")) +
-    theme(plot.title = element_text(hjust=0.5, face = "bold", size=10))+ 
-    scale_y_continuous(labels = scales::percent) + 
-    theme(axis.text.y = element_text(size = 11, colour = "black"))
-  graph.count.3 = graph.count.3 + 1 
-  
-  sub.graphs.3[[graph.count.3]] <- ggplot(data=sub.graph.data.3, aes(x=group, y=unique_tag, fill=type_nt)) + 
-    geom_bar(position = "fill", stat="identity") + 
-    theme_bw()+
-    theme(axis.ticks.x=element_blank()) + 
-    theme(panel.grid.major.x = element_blank())+ 
-    theme(panel.grid.major.y = element_blank()) + 
-    ylab("") +  
-    xlab(" ") +
-    theme(axis.title.y = element_text(size = 11, colour = "black"))+ 
-    theme(axis.text.y = element_text(size = 11, colour = "black")) +
-    theme(plot.title = element_text(hjust=0.5, face = "bold", size=10))+ 
-    scale_y_continuous(labels = scales::percent) + 
-    theme(axis.text.y = element_text(size = 11, colour = "black"))
-  graph.count.3 = graph.count.3 + 1 
+    xlab("") +
+    theme_bw() +
+    theme(axis.ticks.x=element_blank(), 
+          panel.grid.major.x = element_blank(),
+          panel.grid.major.y = element_blank(),
+          plot.title = element_text(size = 25, face = "bold"),
+          axis.text = element_text(size = 18),
+          legend.title = element_text(size = 20, face = "bold"),
+          legend.text = element_text(size = 18),
+          plot.margin = unit(c(17,17,17,17), "pt")) + 
+    scale_y_continuous(labels = scales::percent) 
 }
-graph.3 <- grid.arrange(grobs=sub.graphs.3, ncol = 2)
-ggsave(file='../data/graphs/graph_3.pdf', graph.3)
+graph.3 <- graph.3 + 
+  plot_layout(ncol = 2, guides = "auto") 
+ggsave(file='../data/graphs/graph_3.pdf', plot = graph.3, width = 10 * group.scaling, height = 16 * type_nt.scaling, limitsize = FALSE)
 
 # Visualise graph 4
-sub.graphs.4 <- list()
 graph.data.4 <- read.csv('../data/8_graph_processed_data/graph_4_data.csv')
 grouped.graph.data.4 <- graph.data.4 %>% group_by(group) %>% group_data() 
 grouped.graph.data.4 <- as.data.frame(grouped.graph.data.4)
-graph.count.4 = 1
+graph.4 <- NULL
+
+group.scaling <- length(unique(graph.data.4[, 'group'])) / 2 
+type_ext.scaling <- length(unique(graph.data.4[, 'Position'])) / 10 
+
 for (row in 1:nrow(grouped.graph.data.4)) {
   group.name = grouped.graph.data.4[row,'group']
   indexes = unlist(grouped.graph.data.4[row,'.rows'])
@@ -121,37 +169,62 @@ for (row in 1:nrow(grouped.graph.data.4)) {
   
   sub.graph.data.4$Position=factor(sub.graph.data.4$Position, levels = unique(sub.graph.data.4$Position))
   
-  sub.graphs.4[[graph.count.4]] <- ggplot(sub.graph.data.4, aes(fill=Templated, y=count, x=Position)) + 
-    geom_bar(position="fill", stat="identity")+
-    xlab("Position") +
-    ylab("%")+
-    theme_bw()+
-    theme(legend.text = element_text(size=14),
-          legend.title = element_text(size=14),
-          axis.title=element_text(size=14), 
-          axis.text = element_text(size=14))
-  graph.count.4 = graph.count.4 + 1 
+  if (is.null(graph.4)) {
+    graph.4 <- ggplot(sub.graph.data.4, aes(fill=Templated, y=count, x=Position)) + 
+      ggtitle(paste(group.name, "(%)", sep=" ")) +
+      geom_bar(position="fill", stat="identity") +
+      xlab("Position") +
+      ylab("%")+
+      theme_bw() + 
+      theme(plot.title = element_text(size = 12.5, face = "bold"), 
+            legend.title = element_text(size = 10, face = "bold"), 
+            legend.text = element_text(size = 9), 
+            axis.text = element_text(size = 9), 
+            axis.title = element_text(size = 10), 
+            plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt")) + 
+      scale_y_continuous(labels = scales::percent) 
+  } else {
+    graph.4 <- graph.4 + ggplot(sub.graph.data.4, aes(fill=Templated, y=count, x=Position)) + 
+      ggtitle(paste(group.name, "(%)", sep=" ")) +
+      geom_bar(position="fill", stat="identity") +
+      xlab("Position") +
+      ylab("%") +
+      theme_bw() + 
+      theme(plot.title = element_text(size = 12.5, face = "bold"), 
+            legend.title = element_text(size = 10, face = "bold"), 
+            legend.text = element_text(size = 9), 
+            axis.text = element_text(size = 9), 
+            axis.title = element_text(size = 10), 
+            plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt")) + 
+      scale_y_continuous(labels = scales::percent) 
+  }
   
-  sub.graphs.4[[graph.count.4]] <- ggplot(sub.graph.data.4, aes(fill=Templated, y=count, x=Position)) + 
-    geom_bar(position="stack", stat="identity")+
+  graph.4 <- graph.4 + ggplot(sub.graph.data.4, aes(fill=Templated, y=count, x=Position)) + 
+    ggtitle(paste(group.name, "(unique tag)", sep=" ")) +
+    geom_bar(position="stack", stat="identity") +
     xlab("Position") +
     ylab("Tag")+
-    theme_bw()+
-    theme(legend.text = element_text(size=14),
-          legend.title = element_text(size=14),
-          axis.title=element_text(size=14), 
-          axis.text = element_text(size=14))
-  graph.count.4 = graph.count.4 + 1 
+    theme_bw() + 
+    theme(plot.title = element_text(size = 12.5, face = "bold"), 
+          legend.title = element_text(size = 10, face = "bold"), 
+          legend.text = element_text(size = 9), 
+          axis.text = element_text(size = 9), 
+          axis.title = element_text(size = 10), 
+          plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt")) 
 }
-graph.4 <- grid.arrange(grobs=sub.graphs.4, ncol = 2)
-ggsave(file='../data/graphs/graph_4.pdf', graph.4)
+graph.4 <- graph.4 + 
+  plot_layout(ncol = 2, guides = "collect")  
+ggsave(file='../data/graphs/graph_4.pdf', plot = graph.4, width = 15 * type_ext.scaling, height = 10 * group.scaling, limitsize = FALSE)
 
-# Visualise graph 4
-sub.graphs.5 <- list()
+
+# Visualise graph 5
 graph.data.5 <- read.csv('../data/8_graph_processed_data/graph_5_data.csv')
 grouped.graph.data.5 <- graph.data.5 %>% group_by(group) %>% group_data() 
 grouped.graph.data.5 <- as.data.frame(grouped.graph.data.5)
-graph.count.5 = 1
+graph.5 <- NULL
+group.scaling <- length(unique(graph.data.5[, 'group'])) / 2 
+type_ext.scaling <- length(unique(graph.data.5[, 'Position'])) / 10 
+
 for (row in 1:nrow(grouped.graph.data.5)) {
   group.name = grouped.graph.data.5[row,'group']
   indexes = unlist(grouped.graph.data.5[row,'.rows'])
@@ -159,28 +232,120 @@ for (row in 1:nrow(grouped.graph.data.5)) {
   
   sub.graph.data.5$Position=factor(sub.graph.data.5$Position, levels = unique(sub.graph.data.5$Position))
   
-  sub.graphs.5[[graph.count.5]] <- ggplot(sub.graph.data.5, aes(fill=Nucleotide, y=count, x=Position)) + 
-    geom_bar(position="fill", stat="identity")+
-    xlab("Position") +
-    ylab("%")+
-    theme_bw()+
-    theme(legend.text = element_text(size=14),
-          legend.title = element_text(size=14),
-          axis.title=element_text(size=14), 
-          axis.text = element_text(size=14))
-  graph.count.5 = graph.count.5 + 1 
+  if (is.null(graph.5)) {
+    graph.5 <- ggplot(sub.graph.data.5, aes(fill=Nucleotide, y=count, x=Position)) + 
+      ggtitle(paste(group.name, "(%)", sep=" ")) +
+      geom_bar(position="fill", stat="identity")+
+      xlab("Position") +
+      ylab("%") +
+      theme_bw() + 
+      theme(
+        plot.title = element_text(size = 12.5, face = "bold"), 
+        legend.title = element_text(size = 10, face = "bold"), 
+        legend.text = element_text(size = 9), 
+        axis.text = element_text(size = 9), 
+        axis.title = element_text(size = 10),
+        plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt")) + 
+      scale_y_continuous(labels = scales::percent) 
+  } else {
+    graph.5 <- graph.5 + ggplot(sub.graph.data.5, aes(fill=Nucleotide, y=count, x=Position)) + 
+      ggtitle(paste(group.name, "(%)", sep=" ")) +
+      geom_bar(position="fill", stat="identity") +
+      xlab("Position") +
+      ylab("%") +
+      theme_bw() + 
+      theme(
+        plot.title = element_text(size = 12.5, face = "bold"), 
+        legend.title = element_text(size = 10, face = "bold"), 
+        legend.text = element_text(size = 9), 
+        axis.text = element_text(size = 9), 
+        axis.title = element_text(size = 10), 
+        plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt")) + 
+      scale_y_continuous(labels = scales::percent) 
+  }
   
-  sub.graphs.5[[graph.count.5]] <- ggplot(sub.graph.data.5, aes(fill=Nucleotide, y=count, x=Position)) + 
-    geom_bar(position="stack", stat="identity")+
+  graph.5 <- graph.5 + ggplot(sub.graph.data.5, aes(fill=Nucleotide, y=count, x=Position)) + 
+    ggtitle(paste(group.name, "(unique tag)", sep=" ")) +
+    geom_bar(position="stack", stat="identity") +
     xlab("Position") +
-    ylab("Tag")+
-    theme_bw()+
-    theme(legend.text = element_text(size=14),
-          legend.title = element_text(size=14),
-          axis.title=element_text(size=14), 
-          axis.text = element_text(size=14))
-  graph.count.5 = graph.count.5 + 1 
+    ylab("Tag") +
+    theme_bw() + 
+    theme(plot.title = element_text(size = 12.5, face = "bold"), 
+          legend.title = element_text(size = 10, face = "bold"),
+          legend.text = element_text(size = 9), 
+          axis.text = element_text(size = 9), 
+          axis.title = element_text(size = 10), 
+          plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt")) 
 }
-graph.5 <- grid.arrange(grobs=sub.graphs.5, ncol = 2)
-ggsave(file='../data/graphs/graph_5.pdf', graph.5)
+graph.5 <- graph.5 + 
+  plot_layout(ncol = 2, guides = "collect") 
+ggsave(file='../data/graphs/graph_5.pdf', plot = graph.5, width = 10 * type_ext.scaling, height = 10 * group.scaling, limitsize = FALSE)
+
+# Visualise graph 6
+graph.data.6 <- read.csv('../data/8_graph_processed_data/graph_6_data.csv')
+grouped.graph.data.6 <- graph.data.6 %>% group_by(group,type) %>% group_data() 
+grouped.graph.data.6 <- as.data.frame(grouped.graph.data.6)
+graph.6 <- NULL
+
+group.scaling <- length(unique(graph.data.6[, 'group'])) / 2 
+type.scaling <- length(unique(graph.data.6[, 'Position'])) / 10 
+
+for (row in 1:nrow(grouped.graph.data.6)) {
+  group.name = grouped.graph.data.6[row,'group']
+  type.name = grouped.graph.data.6[row,'type']
+  
+  indexes = unlist(grouped.graph.data.6[row,'.rows'])
+  sub.graph.data.6 <- graph.data.6[indexes,]
+  
+  sub.graph.data.6$Position=factor(sub.graph.data.6$Position, levels = unique(sub.graph.data.6$Position))
+  
+  if (is.null(graph.6)) {
+    graph.6 <- ggplot(sub.graph.data.6, aes(fill=Templated, y=count, x=Position)) + 
+      ggtitle(paste(group.name, type.name, "(unique tag)", sep=" ")) +
+      geom_bar(position="stack", stat="identity") +
+      xlab("Position") +
+      ylab("Tag")+
+      theme_bw() + 
+      theme(plot.title = element_text(size = 12.5, face = "bold"), 
+            legend.title = element_text(size = 10, face = "bold"), 
+            legend.text = element_text(size = 9), 
+            axis.text = element_text(size = 9), 
+            axis.title = element_text(size = 10), 
+            plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt")) 
+  } else {
+    graph.6 <- graph.6 + ggplot(sub.graph.data.6, aes(fill=Templated, y=count, x=Position)) + 
+      ggtitle(paste(group.name, type.name, "(unique tag)", sep=" ")) +
+      geom_bar(position="stack", stat="identity") +
+      xlab("Position") +
+      ylab("Tag")+
+      theme_bw() + 
+      theme(plot.title = element_text(size = 12.5, face = "bold"), 
+            legend.title = element_text(size = 10, face = "bold"), 
+            legend.text = element_text(size = 9), 
+            axis.text = element_text(size = 9), 
+            axis.title = element_text(size = 10), 
+            plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt")) 
+  }
+}  
+graph.6 <- graph.6 + 
+  plot_layout(ncol = 2, guides = "collect") 
+ggsave(file='../data/graphs/graph_6.pdf', plot = graph.6, width = 10 * type.scaling, height = 10 * group.scaling, limitsize = FALSE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
