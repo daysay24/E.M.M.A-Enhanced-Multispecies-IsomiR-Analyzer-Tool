@@ -88,16 +88,16 @@ ggsave(file='../data/graphs/graph_2.pdf', plot = graph.2, width = 10, height = 1
 # Visualise graph 3
 graph.data.3 <- read.csv('../data/8_graph_processed_data/graph_3_data.csv')
 names(graph.data.3)[names(graph.data.3) == "type_nt"] <- "Type"
-ends <- list("All isomiRs", "3'isomiRs", "5'isomiRs")
+ends <- list("All isomiR", "3'isomiR", "5'isomiR")
 graph.3 <- NULL
 group.scaling <- length(unique(graph.data.3[, 'group'])) / 2 
 type_nt.scaling <- length(unique(graph.data.3[, 'Type'])) / 20 
 for (end in ends) {
   sub.graph.data.3 <- NULL
-  if (end == 'All isomiRs') {
+  if (end == 'All isomiR') {
     sub.graph.data.3 <- graph.data.3
   } else {
-    sub.graph.data.3 <- graph.data.3[which(graph.data.3$end == end), ] 
+    sub.graph.data.3 <- graph.data.3[which(graph.data.3$grouped_type == end), ] 
   }
   
   if (is.null(graph.3)) {
@@ -151,19 +151,22 @@ for (end in ends) {
 }
 graph.3 <- graph.3 + 
   plot_layout(ncol = 2, guides = "auto") 
-ggsave(file='../data/graphs/graph_3.pdf', plot = graph.3, width = 10 * group.scaling, height = 16 * type_nt.scaling, limitsize = FALSE)
+ggsave(file='../data/graphs/graph_3.pdf', plot = graph.3, width = 20 * group.scaling, height = 20 * type_nt.scaling, limitsize = FALSE)
 
 # Visualise graph 4
 graph.data.4 <- read.csv('../data/8_graph_processed_data/graph_4_data.csv')
-grouped.graph.data.4 <- graph.data.4 %>% group_by(group) %>% group_data() 
+names(graph.data.4)[names(graph.data.4) == "templated"] <- "Templated"
+names(graph.data.4)[names(graph.data.4) == "group"] <- "Group"
+names(graph.data.4)[names(graph.data.4) == "position"] <- "Position"
+grouped.graph.data.4 <- graph.data.4 %>% group_by(Group) %>% group_data() 
 grouped.graph.data.4 <- as.data.frame(grouped.graph.data.4)
 graph.4 <- NULL
 
-group.scaling <- length(unique(graph.data.4[, 'group'])) / 2 
+group.scaling <- length(unique(graph.data.4[, 'Group'])) / 2 
 type_ext.scaling <- length(unique(graph.data.4[, 'Position'])) / 10 
 
 for (row in 1:nrow(grouped.graph.data.4)) {
-  group.name = grouped.graph.data.4[row,'group']
+  group.name = grouped.graph.data.4[row,'Group']
   indexes = unlist(grouped.graph.data.4[row,'.rows'])
   sub.graph.data.4 <- graph.data.4[indexes,]
   
@@ -219,14 +222,18 @@ ggsave(file='../data/graphs/graph_4.pdf', plot = graph.4, width = 15 * type_ext.
 
 # Visualise graph 5
 graph.data.5 <- read.csv('../data/8_graph_processed_data/graph_5_data.csv')
-grouped.graph.data.5 <- graph.data.5 %>% group_by(group) %>% group_data() 
+names(graph.data.5)[names(graph.data.5) == "nucleotide"] <- "Nucleotide"
+names(graph.data.5)[names(graph.data.5) == "group"] <- "Group"
+names(graph.data.5)[names(graph.data.5) == "position"] <- "Position"
+
+grouped.graph.data.5 <- graph.data.5 %>% group_by(Group) %>% group_data() 
 grouped.graph.data.5 <- as.data.frame(grouped.graph.data.5)
 graph.5 <- NULL
-group.scaling <- length(unique(graph.data.5[, 'group'])) / 2 
+group.scaling <- length(unique(graph.data.5[, 'Group'])) / 2 
 type_ext.scaling <- length(unique(graph.data.5[, 'Position'])) / 10 
 
 for (row in 1:nrow(grouped.graph.data.5)) {
-  group.name = grouped.graph.data.5[row,'group']
+  group.name = grouped.graph.data.5[row,'Group']
   indexes = unlist(grouped.graph.data.5[row,'.rows'])
   sub.graph.data.5 <- graph.data.5[indexes,]
   
@@ -283,16 +290,22 @@ ggsave(file='../data/graphs/graph_5.pdf', plot = graph.5, width = 10 * type_ext.
 
 # Visualise graph 6
 graph.data.6 <- read.csv('../data/8_graph_processed_data/graph_6_data.csv')
-grouped.graph.data.6 <- graph.data.6 %>% group_by(group,type) %>% group_data() 
+
+names(graph.data.6)[names(graph.data.6) == "templated"] <- "Templated"
+names(graph.data.6)[names(graph.data.6) == "group"] <- "Group"
+names(graph.data.6)[names(graph.data.6) == "position"] <- "Position"
+names(graph.data.6)[names(graph.data.6) == "type"] <- "Type"
+
+grouped.graph.data.6 <- graph.data.6 %>% group_by(Group,Type) %>% group_data() 
 grouped.graph.data.6 <- as.data.frame(grouped.graph.data.6)
 graph.6 <- NULL
 
-group.scaling <- length(unique(graph.data.6[, 'group'])) / 2 
+group.scaling <- length(unique(graph.data.6[, 'Group'])) / 2 
 type.scaling <- length(unique(graph.data.6[, 'Position'])) / 10 
 
 for (row in 1:nrow(grouped.graph.data.6)) {
-  group.name = grouped.graph.data.6[row,'group']
-  type.name = grouped.graph.data.6[row,'type']
+  group.name = grouped.graph.data.6[row,'Group']
+  type.name = grouped.graph.data.6[row,'Type']
   
   indexes = unlist(grouped.graph.data.6[row,'.rows'])
   sub.graph.data.6 <- graph.data.6[indexes,]

@@ -24,6 +24,14 @@ def match_letters(pri_seq, aligned_isomiR_seq):
             matched_letters.append(f"({iso_letter}, -)")  # Mismatch
     return matched_letters
 
+def extended_or_truncated(nt_5p_diff, nt_3p_diff):
+    if (nt_5p_diff < 0 and nt_3p_diff == 0) or (nt_5p_diff == 0 and nt_3p_diff < 0) or (nt_5p_diff < 0 and nt_3p_diff < 0):
+        return 'truncated'
+    elif (nt_5p_diff > 0 and nt_3p_diff == 0) or (nt_5p_diff == 0 and nt_3p_diff > 0) or (nt_5p_diff > 0 and nt_3p_diff > 0):
+        return 'extended'
+    else: 
+        return ''
+
 # Path to all summarised isomiR files 
 path_summarised_output_folder = '../data/1_summarised_isomiRs'
 # Path to extended precursor sequences file 
@@ -62,7 +70,7 @@ for group in group_folders:
             # calculat max length of extended precursor
             max_extended_precursor_len = max([len(extended_precursor_seq) for extended_precursor_seq in list(extended_precursors['extended_precursor_seq'])])
             # Write header
-            writer.writerow(['name', 'pre_seq', 'is_pre'] + [str(i) for i in range(1, max_extended_precursor_len + 1)])
+            writer.writerow(['name', 'pre_seq', 'is_pre', 'extended_or_truncated'] + [str(i) for i in range(1, max_extended_precursor_len + 1)])
             # Group isomiRs by mirna name and loop over each group 
             grouped_mir_name = rep_df.groupby('mir_name')
             for mir_name, mir_group in grouped_mir_name:
@@ -70,11 +78,11 @@ for group in group_folders:
                 first_r = mir_group.iloc[0]
                 pre_seq = first_r['extended_precursor_seq']
                 # write the pri 
-                writer.writerow([mir_name, pre_seq, True] + list(pre_seq))
+                writer.writerow([mir_name, pre_seq, True, ''] + list(pre_seq))
                 for _, r in mir_group.iterrows(): 
                     aligned_seq = align_isomiR_to_pre_miRNA(max_nt_diff_5p, r['5p_nt_diff'], pre_seq, r['tag_sequence'])
                     matched_letters = match_letters(pre_seq, aligned_seq)
-                    writer.writerow([mir_name, aligned_seq, False] + list(matched_letters))
+                    writer.writerow([mir_name, aligned_seq, False, extended_or_truncated(r['5p_nt_diff'], r['3p_nt_diff'])] + list(matched_letters))
 
 
             

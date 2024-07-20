@@ -7,18 +7,22 @@ def get_avg(r, rep_cols):
     for rep_col in rep_cols: 
         total_count += r[rep_col]   
 
-    return total_count
+    return total_count / len(rep_cols)
 
 # Path to summarised nt alignment output files 
 path_summarised_nt_alignment_output_folder = '../data/6_summarised_nt_alignment'
 # Path to summarised templated alignment output files 
 path_summarised_templated_alignment_output_folder = '../data/6_summarised_templated_alignment'
+# Path to summarised templated alignment all output files 
+path_summarised_templated_alignment_all_output_folder = '../data/6_summarised_templated_alignment_all'
 # Path to averaged summarised nt alignment output files 
 path_avg_summarised_nt_alignment_output_folder = '../data/7_avg_summarised_nt_alignment'
 # Path to averaged summarised templated alignment output files 
 path_avg_summarised_templated_alignment_output_folder = '../data/7_avg_summarised_templated_alignment'
+# Path to averaged summarised templated alignment all output files 
+path_avg_summarised_templated_alignment_all_output_folder = '../data/7_avg_summarised_templated_alignment_all'
 # Loop through each group
-for input_path, output_path in zip([path_summarised_nt_alignment_output_folder, path_summarised_templated_alignment_output_folder], [path_avg_summarised_nt_alignment_output_folder, path_avg_summarised_templated_alignment_output_folder]):
+for input_path, output_path in zip([path_summarised_nt_alignment_output_folder, path_summarised_templated_alignment_output_folder, path_summarised_templated_alignment_all_output_folder], [path_avg_summarised_nt_alignment_output_folder, path_avg_summarised_templated_alignment_output_folder, path_avg_summarised_templated_alignment_all_output_folder]):
     # Get group folders
     group_folders = os.listdir(input_path)
     # create folder if not exists 
@@ -37,9 +41,9 @@ for input_path, output_path in zip([path_summarised_nt_alignment_output_folder, 
             # read the replicate file 
             rep_df = pd.read_csv(f'{input_path}/{group}/{rep_file}', dtype={'Position': 'str'})
             # key columns 
-            key_cols = set(rep_df.columns) - {'Value'}
+            key_cols = set(rep_df.columns) - {'value'}
             # rename Value column to replicate name
-            rep_df = rep_df.rename(columns={'Value': rep_name})
+            rep_df = rep_df.rename(columns={'value': rep_name})
             # check if the group_df is empty. If yes, group_df is set to be the first replicate 
             if group_df.empty:
                 group_df = rep_df

@@ -8,7 +8,7 @@ def split_nt_templated(input_file, output_file, type):
     templated_nt = templated_nt.fillna("(' ', ' ')")
     # Get position columns 
     cols = list(templated_nt.columns)
-    del cols[0:3]
+    del cols[0:4]
     # Loop over all rows 
     for index, r in templated_nt.iterrows():
         if r['is_pre'] == False:            

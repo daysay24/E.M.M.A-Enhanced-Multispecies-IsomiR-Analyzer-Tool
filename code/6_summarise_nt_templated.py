@@ -27,7 +27,7 @@ def summarise_nt_alignment(path_nt_alignment_file, path_summarised_nt_alignment_
     # For each row, get values for 5e1, 5e2, 5e3,..., 3e1, 3e2,... if that is an miRNA/isomiR 
     nt_alignment[extension_cols] = nt_alignment.apply(lambda r: get_extension_values(r, max_nt_diff_5p, max_nt_diff_3p), axis=1)
     # Summarise for nt 
-    nt_summary = pd.DataFrame(columns=['Position', 'Nucleotide', 'Value'])
+    nt_summary = pd.DataFrame(columns=['position', 'nucleotide', 'value'])
     for col in extension_cols: 
         freq_counts = Counter(list(nt_alignment[col]))
         for nt in ['a', 'u', 'c', 'g']:
@@ -50,7 +50,7 @@ def summarise_templated_alignment(path_templated_alignment_file, path_summarised
     # For each row, get values for 5e1, 5e2, 5e3,..., 3e1, 3e2,... if that is an miRNA/isomiR 
     templated_alignment[extension_cols] = templated_alignment.apply(lambda r: get_extension_values(r, max_nt_diff_5p, max_nt_diff_3p), axis=1)
     # Summarise for templated 
-    templated_summary = pd.DataFrame(columns=['Position', 'Templated', 'Value'])
+    templated_summary = pd.DataFrame(columns=['position', 'templated', 'value'])
     for col in extension_cols: 
         freq_counts = Counter(list(templated_alignment[col]))
         templated_value = freq_counts['+'] if '+' in freq_counts else 0
@@ -58,6 +58,39 @@ def summarise_templated_alignment(path_templated_alignment_file, path_summarised
         templated_summary.loc[len(templated_summary.index)] = [col, 'Templated', templated_value]
         templated_summary.loc[len(templated_summary.index)] = [col, 'Untemplated', untemplated_value]
         templated_summary.to_csv(path_summarised_templated_alignment_file, index = False)
+
+def summarise_templated_alignment_all(path_templated_alignment_file, path_summarised_templated_alignment_all_file, max_nt_diff_5p):
+    # Read the templated alignment replicate file 
+    templated_alignment = pd.read_csv(path_templated_alignment_file)
+    # Remove precursor rows 
+    templated_alignment = templated_alignment[templated_alignment['is_pre'] == False]
+    # Retain extended or truncated isomiRs 
+    templated_alignment = templated_alignment[templated_alignment['extended_or_truncated'].isin(['extended', 'truncated'])]
+    # Summarise for templated 
+    templated_summary = pd.DataFrame(columns=['type', 'position', 'templated', 'value'])
+    # Group by extended / truncated 
+    grouped_extended_or_truncated = templated_alignment.groupby('extended_or_truncated')
+    # Position columns 
+    cols = list(templated_alignment.columns)
+    del cols[0:4]
+    for extended_or_truncated, extended_or_truncated_group in grouped_extended_or_truncated:
+        # Loop through each position 
+        for col in cols: 
+            freq_counts = Counter(list(extended_or_truncated_group[col]))
+            templated_value = freq_counts['+'] if '+' in freq_counts else 0
+            untemplated_value = freq_counts['-'] if '+' in freq_counts else 0
+            col = int(col)
+            if extended_or_truncated == 'extended':
+                col = f"5'e{max_nt_diff_5p - col + 1}" if col <= max_nt_diff_5p else col - max_nt_diff_5p
+            else: 
+                if col <= max_nt_diff_5p:
+                    continue
+                else: 
+                    col = col - max_nt_diff_5p
+                
+            templated_summary.loc[len(templated_summary.index)] = [extended_or_truncated, col, 'Templated', templated_value]
+            templated_summary.loc[len(templated_summary.index)] = [extended_or_truncated, col, 'Untemplated', untemplated_value]
+    templated_summary.to_csv(path_summarised_templated_alignment_all_file, index = False)
 
 # Path to nt alignment output files 
 path_nt_alignment_output_folder = '../data/5_nt_alignment'
@@ -67,6 +100,8 @@ path_templated_alignment_output_folder = '../data/5_templated_alignment'
 path_summarised_nt_alignment_output_folder = '../data/6_summarised_nt_alignment'
 # Path to summarised templated alignment output files 
 path_summarised_templated_alignment_output_folder = '../data/6_summarised_templated_alignment'
+# Path to summarised templated alignment all positions output files 
+path_summarised_templated_alignment_all_output_folder = '../data/6_summarised_templated_alignment_all'
 # List of group folders (e.g NEJ, JUV, AD)
 nt_group_folders = os.listdir(path_nt_alignment_output_folder)
 templated_group_folders = os.listdir(path_templated_alignment_output_folder)
@@ -89,6 +124,9 @@ for nt_group, templated_group in zip(nt_group_folders, templated_group_folders):
     if not os.path.exists(f'{path_summarised_templated_alignment_output_folder}/{templated_group}'):
         os.makedirs(f'{path_summarised_templated_alignment_output_folder}/{templated_group}')
 
+    if not os.path.exists(f'{path_summarised_templated_alignment_all_output_folder}/{templated_group}'):
+        os.makedirs(f'{path_summarised_templated_alignment_all_output_folder}/{templated_group}')
+
     # Loop through each replicate file 
     for nt_rep_file, templated_rep_file in zip(rep_nt_files, rep_templated_files):
         summarise_nt_alignment(f'{path_nt_alignment_output_folder}/{nt_group}/{nt_rep_file}', 
@@ -99,4 +137,8 @@ for nt_group, templated_group in zip(nt_group_folders, templated_group_folders):
                                f'{path_summarised_templated_alignment_output_folder}/{templated_group}/{templated_rep_file}',
                                max_nt_diff_5p,
                                max_nt_diff_3p)
+        summarise_templated_alignment_all(f'{path_templated_alignment_output_folder}/{templated_group}/{templated_rep_file}', 
+                                f'{path_summarised_templated_alignment_all_output_folder}/{templated_group}/{templated_rep_file}',
+                                max_nt_diff_5p)
+                
                                                                                                 
