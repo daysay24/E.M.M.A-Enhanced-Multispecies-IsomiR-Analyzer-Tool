@@ -4,7 +4,7 @@ import re
 import os
 import re
 import requests 
-
+import sys
 
 def extract_miR_info(row):
     details = row['details'].split(';')
@@ -72,16 +72,23 @@ def get_extended_miRNA_coordinates(is_mirbase_gff, is_built_in_genome, max_nt_di
         pd.DataFrame({'mir_name': mir_names, 'extended_precursor_seq': extended_precursor_seqs}).to_csv(f'{path_precursor_output_folder}/{max_nt_diff_5p}_{max_nt_diff_3p}_extended_precursor_seqs.csv', index=False)
 
 # Path to the summarised outputs folder 
-path_summarised_output_folder = '../data/1_summarised_isomiRs'
+path_summarised_output_folder = sys.argv[1]
 # Path to the precursor folder 
-path_precursors_folder = '../data/3_precursors'
+path_precursors_output_folder = sys.argv[2]
 # Path to the genomic data files 
-path_genomic_data_folder = '../data/0_genomic_data'
+path_genomic_data_folder = sys.argv[3]
+# Species code 
+species = sys.argv[4]
+# Is user using mirbase gff file 
+is_mirbase_gff = True if sys.argv[5] == 'True' else False
+# Is user using built_in genome 
+is_built_in_genome = True if sys.argv[6] == 'True' else False
+
 # Max nt difference at 5p and 3p 
 max_nt_diff_5p, max_nt_diff_3p = 0, 0
 # create folder if not exists
-if not os.path.exists(path_precursors_folder):
-    os.makedirs(path_precursors_folder)
+if not os.path.exists(path_precursors_output_folder):
+    os.makedirs(path_precursors_output_folder)
 
 # Loop through each group
 group_folders = os.listdir(path_summarised_output_folder)
@@ -99,4 +106,4 @@ for group in group_folders:
             max_nt_diff_5p = max(summarised_isomiRs['5p_nt_diff'])
         if max(summarised_isomiRs['3p_nt_diff']) > max_nt_diff_3p:
             max_nt_diff_3p = max(summarised_isomiRs['3p_nt_diff'])
-get_extended_miRNA_coordinates(True, True, max_nt_diff_5p, max_nt_diff_3p, path_precursors_folder, path_genomic_data_folder, 'mm10')
+get_extended_miRNA_coordinates(is_mirbase_gff, is_built_in_genome, max_nt_diff_5p, max_nt_diff_3p, path_precursors_output_folder, path_genomic_data_folder, species)

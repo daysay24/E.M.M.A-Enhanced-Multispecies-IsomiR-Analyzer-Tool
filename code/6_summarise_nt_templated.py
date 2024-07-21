@@ -1,6 +1,7 @@
 import pandas as pd 
 from collections import Counter
 import os
+import sys
 
 def get_extension_values(r, max_nt_diff_5p, max_nt_diff_3p):
     values = []
@@ -93,20 +94,20 @@ def summarise_templated_alignment_all(path_templated_alignment_file, path_summar
     templated_summary.to_csv(path_summarised_templated_alignment_all_file, index = False)
 
 # Path to nt alignment output files 
-path_nt_alignment_output_folder = '../data/5_nt_alignment'
+path_nt_alignment_output_folder = sys.argv[1]
 # Path to templated alignment output files 
-path_templated_alignment_output_folder = '../data/5_templated_alignment'
+path_templated_alignment_output_folder = sys.argv[2]
 # Path to summarised nt alignment output files 
-path_summarised_nt_alignment_output_folder = '../data/6_summarised_nt_alignment'
+path_summarised_nt_alignment_output_folder = sys.argv[3]
 # Path to summarised templated alignment output files 
-path_summarised_templated_alignment_output_folder = '../data/6_summarised_templated_alignment'
+path_summarised_templated_alignment_output_folder = sys.argv[4]
 # Path to summarised templated alignment all positions output files 
-path_summarised_templated_alignment_all_output_folder = '../data/6_summarised_templated_alignment_all'
+path_summarised_templated_alignment_all_output_folder = sys.argv[5]
 # List of group folders (e.g NEJ, JUV, AD)
 nt_group_folders = os.listdir(path_nt_alignment_output_folder)
 templated_group_folders = os.listdir(path_templated_alignment_output_folder)
 # Path to extended precursor sequences file 
-path_precursors_output_folder = '../data/3_precursors'
+path_precursors_output_folder = sys.argv[6]
 # Get precursor file 
 precursor_output_file = [file for file in os.listdir(path_precursors_output_folder) if '.csv' in file][0]
 # Get max nt difference at 5p 

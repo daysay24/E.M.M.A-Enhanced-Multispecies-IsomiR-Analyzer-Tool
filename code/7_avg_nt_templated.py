@@ -1,5 +1,6 @@
 import pandas as pd 
 import os
+import sys
 
 def get_avg(r, rep_cols):
     total_count = 0
@@ -10,17 +11,17 @@ def get_avg(r, rep_cols):
     return total_count / len(rep_cols)
 
 # Path to summarised nt alignment output files 
-path_summarised_nt_alignment_output_folder = '../data/6_summarised_nt_alignment'
+path_summarised_nt_alignment_output_folder = sys.argv[1]
 # Path to summarised templated alignment output files 
-path_summarised_templated_alignment_output_folder = '../data/6_summarised_templated_alignment'
+path_summarised_templated_alignment_output_folder = sys.argv[2]
 # Path to summarised templated alignment all output files 
-path_summarised_templated_alignment_all_output_folder = '../data/6_summarised_templated_alignment_all'
+path_summarised_templated_alignment_all_output_folder = sys.argv[3]
 # Path to averaged summarised nt alignment output files 
-path_avg_summarised_nt_alignment_output_folder = '../data/7_avg_summarised_nt_alignment'
+path_avg_summarised_nt_alignment_output_folder = sys.argv[4]
 # Path to averaged summarised templated alignment output files 
-path_avg_summarised_templated_alignment_output_folder = '../data/7_avg_summarised_templated_alignment'
+path_avg_summarised_templated_alignment_output_folder = sys.argv[5]
 # Path to averaged summarised templated alignment all output files 
-path_avg_summarised_templated_alignment_all_output_folder = '../data/7_avg_summarised_templated_alignment_all'
+path_avg_summarised_templated_alignment_all_output_folder = sys.argv[6]
 # Loop through each group
 for input_path, output_path in zip([path_summarised_nt_alignment_output_folder, path_summarised_templated_alignment_output_folder, path_summarised_templated_alignment_all_output_folder], [path_avg_summarised_nt_alignment_output_folder, path_avg_summarised_templated_alignment_output_folder, path_avg_summarised_templated_alignment_all_output_folder]):
     # Get group folders

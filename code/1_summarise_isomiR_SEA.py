@@ -1,8 +1,6 @@
-# This code will summarise raw outputs from isomiR-SEA for all replicates
-
 import pandas as pd 
 import os
-
+import sys
 
 def snp_count(mir_seq, tag_seq, begin_ungapped_mirna, begin_ungapped_tag):
     snp_count = 0
@@ -65,8 +63,8 @@ def add_columns(row):
     return pd.Series([nt_diff_5p, nt_snp, nt_diff_3p, type, annotation])
 
 # Path to the raw outputs folder 
-path_raw_output_folder = '../data/0_isomiR-SEA_isomiRs'
-path_summarised_output_folder = '../data/1_summarised_isomiRs'
+path_raw_output_folder = sys.argv[1]
+path_summarised_output_folder = sys.argv[2]
 group_folders = os.listdir(path_raw_output_folder)
 # Loop through each group
 for group in group_folders:

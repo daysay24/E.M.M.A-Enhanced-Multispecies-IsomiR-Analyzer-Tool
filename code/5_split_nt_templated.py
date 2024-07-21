@@ -1,5 +1,6 @@
 import pandas as pd 
 import os
+import sys
 
 def split_nt_templated(input_file, output_file, type):
     # Read input file
@@ -26,11 +27,11 @@ def split_nt_templated(input_file, output_file, type):
     templated_nt.to_csv(output_file, index=False)
 
 # Path to nt templated alignment files 
-path_nt_templated_alignment_output_folder = '../data/4_nt_templated_alignment'
+path_nt_templated_alignment_output_folder = sys.argv[1]
 # Path to nt alignment output files 
-path_nt_alignment_output_folder = '../data/5_nt_alignment'
+path_nt_alignment_output_folder = sys.argv[2]
 # Path to templated alignment output files 
-path_templated_alignment_output_folder = '../data/5_templated_alignment'
+path_templated_alignment_output_folder = sys.argv[3]
 # List of group folders (e.g NEJ, JUV, AD)
 group_folders = os.listdir(path_nt_templated_alignment_output_folder)
 # Loop through each group

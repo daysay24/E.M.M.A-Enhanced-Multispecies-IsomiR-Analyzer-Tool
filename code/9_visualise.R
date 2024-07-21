@@ -3,11 +3,14 @@ library(patchwork)
 library(dplyr)
 library(ggrepel)
 
+# Passed arguments
+args <- commandArgs(trailingOnly = TRUE)
+
 # Create graph folder 
-dir.create(file.path('../data/graphs/'))
+dir.create(file.path(args[[1]]))
 
 # Visualise graph 1
-graph.data.1 <- read.csv('../data/8_graph_processed_data/graph_1_data.csv')
+graph.data.1 <- read.csv(paste(args[[2]], 'graph_1_data.csv', sep=''))
 names(graph.data.1)[names(graph.data.1) == "type"] <- "Type"
 graph.data.1$group<-as.factor(graph.data.1$group)
 graph.1 <- ggplot(data = graph.data.1, aes(x = group, y = rpm, group = Type, color = Type)) +
@@ -31,10 +34,10 @@ graph.1 <- graph.1 + ggplot(data = graph.data.1, aes(x = group, y = relative_abu
         plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt")) 
 graph.1 <- graph.1 + 
   plot_layout(ncol = 2, guides = "collect")  
-ggsave(file='../data/graphs/graph_1.pdf', plot = graph.1, height = 5, width = 10)
+ggsave(file=paste(args[[1]], 'graph_1.pdf', sep=''), plot = graph.1, height = 5, width = 10)
 
 # Visualise graph 2
-graph.data.2 <- read.csv('../data/8_graph_processed_data/graph_2_data.csv')
+graph.data.2 <- read.csv(paste(args[[2]], 'graph_2_data.csv', sep=''))
 names(graph.data.2)[names(graph.data.2) == "grouped_type"] <- "Type"
 grouped.graph.data.2 <- graph.data.2 %>% group_by(group) %>% group_data() 
 grouped.graph.data.2 <- as.data.frame(grouped.graph.data.2)
@@ -83,10 +86,10 @@ for (row in 1:nrow(grouped.graph.data.2)) {
 }
 graph.2 <- graph.2 + 
   plot_layout(ncol = 2, guides = "collect")
-ggsave(file='../data/graphs/graph_2.pdf', plot = graph.2, width = 10, height = 10 * group.scaling)
+ggsave(file=paste(args[[1]], 'graph_2.pdf', sep=''), plot = graph.2, width = 10, height = 10 * group.scaling)
 
 # Visualise graph 3
-graph.data.3 <- read.csv('../data/8_graph_processed_data/graph_3_data.csv')
+graph.data.3 <- read.csv(paste(args[[2]], 'graph_3_data.csv', sep=''))
 names(graph.data.3)[names(graph.data.3) == "type_nt"] <- "Type"
 ends <- list("All isomiR", "3'isomiR", "5'isomiR")
 graph.3 <- NULL
@@ -151,10 +154,10 @@ for (end in ends) {
 }
 graph.3 <- graph.3 + 
   plot_layout(ncol = 2, guides = "auto") 
-ggsave(file='../data/graphs/graph_3.pdf', plot = graph.3, width = 20 * group.scaling, height = 20 * type_nt.scaling, limitsize = FALSE)
+ggsave(file=paste(args[[1]], 'graph_3.pdf', sep=''), plot = graph.3, width = 20 * group.scaling, height = 20 * type_nt.scaling, limitsize = FALSE)
 
 # Visualise graph 4
-graph.data.4 <- read.csv('../data/8_graph_processed_data/graph_4_data.csv')
+graph.data.4 <- read.csv(paste(args[[2]], 'graph_4_data.csv', sep=''))
 names(graph.data.4)[names(graph.data.4) == "templated"] <- "Templated"
 names(graph.data.4)[names(graph.data.4) == "group"] <- "Group"
 names(graph.data.4)[names(graph.data.4) == "position"] <- "Position"
@@ -217,11 +220,11 @@ for (row in 1:nrow(grouped.graph.data.4)) {
 }
 graph.4 <- graph.4 + 
   plot_layout(ncol = 2, guides = "collect")  
-ggsave(file='../data/graphs/graph_4.pdf', plot = graph.4, width = 15 * type_ext.scaling, height = 10 * group.scaling, limitsize = FALSE)
+ggsave(file=paste(args[[1]], 'graph_4.pdf', sep=''), plot = graph.4, width = 15 * type_ext.scaling, height = 10 * group.scaling, limitsize = FALSE)
 
 
 # Visualise graph 5
-graph.data.5 <- read.csv('../data/8_graph_processed_data/graph_5_data.csv')
+graph.data.5 <- read.csv(paste(args[[2]], 'graph_5_data.csv', sep=''))
 names(graph.data.5)[names(graph.data.5) == "nucleotide"] <- "Nucleotide"
 names(graph.data.5)[names(graph.data.5) == "group"] <- "Group"
 names(graph.data.5)[names(graph.data.5) == "position"] <- "Position"
@@ -286,10 +289,10 @@ for (row in 1:nrow(grouped.graph.data.5)) {
 }
 graph.5 <- graph.5 + 
   plot_layout(ncol = 2, guides = "collect") 
-ggsave(file='../data/graphs/graph_5.pdf', plot = graph.5, width = 10 * type_ext.scaling, height = 10 * group.scaling, limitsize = FALSE)
+ggsave(file=paste(args[[1]], 'graph_5.pdf', sep=''), plot = graph.5, width = 10 * type_ext.scaling, height = 10 * group.scaling, limitsize = FALSE)
 
 # Visualise graph 6
-graph.data.6 <- read.csv('../data/8_graph_processed_data/graph_6_data.csv')
+graph.data.6 <- read.csv(paste(args[[2]], 'graph_6_data.csv', sep=''))
 
 names(graph.data.6)[names(graph.data.6) == "templated"] <- "Templated"
 names(graph.data.6)[names(graph.data.6) == "group"] <- "Group"
@@ -342,7 +345,7 @@ for (row in 1:nrow(grouped.graph.data.6)) {
 }  
 graph.6 <- graph.6 + 
   plot_layout(ncol = 2, guides = "collect") 
-ggsave(file='../data/graphs/graph_6.pdf', plot = graph.6, width = 10 * type.scaling, height = 10 * group.scaling, limitsize = FALSE)
+ggsave(file=paste(args[[1]], 'graph_6.pdf', sep=''), plot = graph.6, width = 10 * type.scaling, height = 10 * group.scaling, limitsize = FALSE)
 
 
 

@@ -1,6 +1,7 @@
 import csv
 import pandas as pd
 import os
+import sys
 
 def align_isomiR_to_pre_miRNA(max_nt_diff_5p, nt_diff_5p, pre_seq, isomiR_seq):
     """Align isomiR sequence to pre-miRNA sequence based on isomiR type."""
@@ -33,11 +34,11 @@ def extended_or_truncated(nt_5p_diff, nt_3p_diff):
         return ''
 
 # Path to all summarised isomiR files 
-path_summarised_output_folder = '../data/1_summarised_isomiRs'
+path_summarised_output_folder = sys.argv[1]
 # Path to extended precursor sequences file 
-path_precursors_output_folder = '../data/3_precursors'
+path_precursors_output_folder = sys.argv[2]
 # Path to nt and templated alignment output files 
-path_nt_templated_alignment_output_folder = '../data/4_nt_templated_alignment'
+path_nt_templated_alignment_output_folder = sys.argv[3]
 # List of group folders (e.g NEJ, JUV, AD)
 group_folders = os.listdir(path_summarised_output_folder)
 # Get precursor file 

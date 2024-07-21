@@ -1,5 +1,6 @@
 import pandas as pd 
 import os 
+import sys
 
 def get_grouped_type(t):
     if t == 'iso_3p_only':
@@ -40,9 +41,9 @@ def get_avg(r, rep_cols):
 
 # Preprocess summarised isomiR output: calculate rpm, combine 
 # Path to all summarised isomiR files 
-path_summarised_output_folder = '../data/1_summarised_isomiRs'
+path_summarised_output_folder = sys.argv[1]
 # Path to the average isomiR files 
-path_avg_replicate_output_folder = '../data/2_avg_replicate_isomiRs'
+path_avg_replicate_output_folder = sys.argv[2]
 # List of group folders (e.g NEJ, JUV, AD)
 group_folders = os.listdir(path_summarised_output_folder)
 # Loop through each group

@@ -1,13 +1,14 @@
 import pandas as pd 
 import os
+import sys
 # Graph 1: summarise data for showing miRNAs and isomiRs total reads (rpm) and relative abundance as percentage of total reads, across stages 
 def process_graph1_data():
     # All groups df
     all_group_df = pd.DataFrame()
     # Path to the average isomiR files 
-    path_avg_replicate_output_folder = '../data/2_avg_replicate_isomiRs'
+    path_avg_replicate_output_folder = sys.argv[1]
     # Path to graph processed data files 
-    path_graph_processed_data_folder = '../data/8_graph_processed_data'
+    path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged summarised isomiRs of each group
     avg_files = os.listdir(path_avg_replicate_output_folder)
     for avg_file in avg_files:
@@ -38,9 +39,9 @@ def process_graph2_data():
     # All groups df
     all_group_df = pd.DataFrame()
     # Path to the average isomiR files 
-    path_avg_replicate_output_folder = '../data/2_avg_replicate_isomiRs'
+    path_avg_replicate_output_folder = sys.argv[1]
     # Path to graph processed data files 
-    path_graph_processed_data_folder = '../data/8_graph_processed_data'
+    path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged summarised isomiRs of each group
     avg_files = os.listdir(path_avg_replicate_output_folder)
     for avg_file in avg_files:
@@ -64,9 +65,9 @@ def process_graph3_data():
     # All groups df
     all_group_df = pd.DataFrame()
     # Path to the average isomiR files 
-    path_avg_replicate_output_folder = '../data/2_avg_replicate_isomiRs'
+    path_avg_replicate_output_folder = sys.argv[1]
     # Path to graph processed data files 
-    path_graph_processed_data_folder = '../data/8_graph_processed_data'
+    path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged summarised isomiRs of each group
     avg_files = os.listdir(path_avg_replicate_output_folder)
     for avg_file in avg_files:
@@ -92,9 +93,9 @@ def process_graph4_data():
     # All groups df
     all_group_df = pd.DataFrame()
     # Path to the average templated summarised alignment files 
-    path_avg_summarised_templated_alignment_output_folder = '../data/7_avg_summarised_templated_alignment'
+    path_avg_summarised_templated_alignment_output_folder = sys.argv[2]
     # Path to graph processed data files 
-    path_graph_processed_data_folder = '../data/8_graph_processed_data'
+    path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged templated summarised alignment file of each group
     avg_files = os.listdir(path_avg_summarised_templated_alignment_output_folder)
     for avg_file in avg_files:
@@ -114,9 +115,9 @@ def process_graph5_data():
     # All groups df
     all_group_df = pd.DataFrame()
     # Path to the average nt summarised alignment files 
-    path_avg_summarised_nt_alignment_output_folder = '../data/7_avg_summarised_nt_alignment'
+    path_avg_summarised_nt_alignment_output_folder = sys.argv[3]
     # Path to graph processed data files 
-    path_graph_processed_data_folder = '../data/8_graph_processed_data'
+    path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged nt summarised alignment file of each group
     avg_files = os.listdir(path_avg_summarised_nt_alignment_output_folder)
     for avg_file in avg_files:
@@ -135,9 +136,9 @@ def process_graph6_data():
     # All groups df
     all_group_df = pd.DataFrame()
     # Path to the average templated summarised alignment files 
-    path_avg_summarised_templated_alignment_all_output_folder = '../data/7_avg_summarised_templated_alignment_all'
+    path_avg_summarised_templated_alignment_all_output_folder = sys.argv[4]
     # Path to graph processed data files 
-    path_graph_processed_data_folder = '../data/8_graph_processed_data'
+    path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged templated summarised alignment all file of each group
     avg_files = os.listdir(path_avg_summarised_templated_alignment_all_output_folder)
     for avg_file in avg_files:
@@ -153,8 +154,8 @@ def process_graph6_data():
     all_group_df.to_csv(f'{path_graph_processed_data_folder}/graph_6_data.csv', index=False)
 
 
-if not os.path.exists('../data/8_graph_processed_data'):
-    os.makedirs('../data/8_graph_processed_data')
+if not os.path.exists(sys.argv[5]):
+    os.makedirs(sys.argv[5])
 
 process_graph1_data()
 process_graph2_data()
