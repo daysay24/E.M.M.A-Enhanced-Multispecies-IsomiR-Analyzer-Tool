@@ -2,7 +2,7 @@
 
 # Paths 
 path_genomic_file=./data/0_genomic_data/genome.fa
-path_coords_file=./data/0_genomic_data/coords.xlsx
+path_coords_file=./data/0_genomic_data/mmu.gff3
 path_raw_output_folder=./data/0_isomiR-SEA_isomiRs
 path_summarised_output_folder=./data/1_summarised_isomiRs
 path_avg_replicate_output_folder=./data/2_avg_replicate_isomiRs
@@ -27,8 +27,8 @@ python ./code/2_avg_summarised_isomiRs.py $path_summarised_output_folder $path_a
 
 # Get precursors 
 species='mm10'
-is_mirbase_gff=False
-is_built_in_genome=False
+is_mirbase_gff=True
+is_built_in_genome=True
 python ./code/3_generate_precursor.py $path_summarised_output_folder $path_precursors_output_folder $path_genomic_file $path_coords_file $species $is_mirbase_gff $is_built_in_genome
 
 # Align nt and templated 

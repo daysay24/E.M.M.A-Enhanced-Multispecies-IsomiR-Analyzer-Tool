@@ -33,7 +33,7 @@ R: ggplot2, patchwork, dplyr, ggrepel.
 
 1.  Put all outputs of isomiR-SEA in /0_isomiR-SEA_isomiRs folder: In this folder, there could be one or multiple subfolders, each represents a group (treatment, stage, time points, etc.) which contains one or multiple replicates.
 
-    For example: There are 2 time points (14hr and 18hr). Each group has two replicates: 14hr includes 14hr_1.txt and 14hr_2.txt and 18hr includes 18hr_1.txt and 18hr_2.txt. The folder looks like this:
+    For example: We provided sample files in /data. There are 2 time points (14hr and 18hr). Each group has two replicates: 14hr includes 14hr_1.txt and 14hr_2.txt and 18hr includes 18hr_1.txt and 18hr_2.txt. The folder looks like this:
 
     ```
     /data/0_isomiR-SEA_isomiRs
@@ -50,7 +50,7 @@ R: ggplot2, patchwork, dplyr, ggrepel.
     - Genome sequence: (1) built-in from UCSC or (2) fasta file from users.
     - miRNA annotation: (1) gff file from miRBase or (2) an excel file from users which must have _chr_, _name_, _start_, _end_, _strand_ columns.
 
-    Hence, there are four possible combinations. Here are detailed setting up steps for mm10 in each case:
+    Hence, there are four possible combinations. We provided sample file for case 1. Here are detailed setting up steps for mm10 in each case:
 
     **Case 1:** Built-in genome from UCSC and gff file from miRBase.
 
