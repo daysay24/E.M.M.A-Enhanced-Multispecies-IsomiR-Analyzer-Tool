@@ -2,12 +2,32 @@
 
 ## Authors
 
-Phuong Thao Nguyen (Emma Nguyen)
-Dayna Sais
+Emma Nguyen, Dayna Sais
 
 ## Description
 
+We develop a program that takes miRNA sequencing reads as input files. These reads may belong to different replicates of different groups such as treatment, stages, timepoints, etc.
+
+The outputs:
+
+- Additional information added to existing output files of isomiR-SEA software, including: annotation, number of nt difference at each end, number of snps. Besides, we identified some inconsistencies in the way isomiR-SEA categorise isomiR type so we refine their categorisation.
+
+- A set of visualisations that provide insights into the isomiR data:
+
+  Graph 1: RPM and relative abundance of isomiRs vs miRNAs in different groups.
+
+  Graph 2: RPM and unique tags of isomiR types (3p, 5p, both, canonical, others) in different groups.
+
+  Graph 3: RPM and unique tags of isomiR types (addition/truncation + nt) in different groups.
+
+  Graph 4: Proportion of templated vs untemplated at addition positions in different groups.
+
+  Graph 5: Proportion of nucleotides (A, U, C, G) at addition positions in different groups.
+
 ## Install dependencies
+
+Python: requests, pandas.
+R: ggplot2, patchwork, dplyr, ggrepel.
 
 ## Run the program
 
