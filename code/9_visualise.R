@@ -22,7 +22,7 @@ graph.data.ratio.1<- graph.data.1 %>%
 x.labels.1 <- c()
 for (row in 1:nrow(graph.data.ratio.1)) {
   r = graph.data.ratio.1[row, ]
-  x.labels.1 <- append(x.labels.1, paste(r['group'], paste("Ratio: ", round(r['ratio'], digits=2), sep=" "), sep="\n"))
+  x.labels.1 <- append(x.labels.1, paste(r['group'], paste("1", round(r['ratio'], digits=2), sep=":"), sep="\n"))
 }
 graph.data.1$group <- factor(graph.data.1$group, levels = unique(graph.data.ratio.1$group))
 
@@ -30,6 +30,7 @@ graph.1 <- ggplot(data = graph.data.1, aes(x = group, y = rpm, group = Type, col
   geom_line() + 
   geom_point() + 
   scale_x_discrete(labels=x.labels.1) + 
+  xlab("Group\nCanonical:IsomiR ratio") +
   theme_bw()+
   theme(legend.title = element_text(size = 10, face = "bold"), 
         legend.text = element_text(size = 9), 
@@ -40,6 +41,7 @@ graph.1 <- graph.1 + ggplot(data = graph.data.1, aes(x = group, y = relative_abu
   geom_line() + 
   geom_point() + 
   ylab("%") +
+  xlab("Group") +
   theme_bw() +
   theme(legend.title = element_text(size = 10, face = "bold"), 
         legend.text = element_text(size = 9), 
