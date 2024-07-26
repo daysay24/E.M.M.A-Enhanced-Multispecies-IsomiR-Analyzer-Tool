@@ -1,23 +1,34 @@
 #!/bin/bash
 
+# Create an output folder if not exist. If already exist, delete all files 
+path_output_folder='./output'
+# Check if the output directory exists
+if [ -d "$path_output_folder" ]; then
+  # If it exists, delete all files inside it
+  rm -rf "${path_output_folder:?}"/*
+else
+  # If it does not exist, create the directory
+  mkdir "$path_output_folder"
+fi
+
 # Paths 
-path_genomic_file=./data/0_genomic_data/genome.fa
-path_coords_file=./data/0_genomic_data/mmu.gff3
-path_raw_output_folder=./data/0_isomiR-SEA_isomiRs
-path_summarised_output_folder=./data/1_summarised_isomiRs
-path_avg_replicate_output_folder=./data/2_avg_replicate_isomiRs
-path_precursors_output_folder=./data/3_precursors
-path_nt_templated_alignment_output_folder=./data/4_nt_templated_alignment
-path_nt_alignment_output_folder=./data/5_nt_alignment
-path_templated_alignment_output_folder=./data/5_templated_alignment
-path_summarised_nt_alignment_output_folder=./data/6_summarised_nt_alignment
-path_summarised_templated_alignment_output_folder=./data/6_summarised_templated_alignment
-path_summarised_templated_alignment_all_output_folder=./data/6_summarised_templated_alignment_all
-path_avg_summarised_nt_alignment_output_folder=./data/7_avg_summarised_nt_alignment
-path_avg_summarised_templated_alignment_output_folder=./data/7_avg_summarised_templated_alignment
-path_avg_summarised_templated_alignment_all_output_folder=./data/7_avg_summarised_templated_alignment_all
-path_graph_processed_data_folder=./data/8_graph_processed_data/
-path_graphs_folder=./data/graphs/
+path_genomic_file=./test/s.jap/genome.fa
+path_coords_file=./test/s.jap/s.jap.xlsx
+path_raw_output_folder=./test/s.jap/isomiR-SEA_outputs
+path_summarised_output_folder=./output/1_summarised_isomiRs
+path_avg_replicate_output_folder=./output/2_avg_replicate_isomiRs
+path_precursors_output_folder=./output/3_precursors
+path_nt_templated_alignment_output_folder=./output/4_nt_templated_alignment
+path_nt_alignment_output_folder=./output/5_nt_alignment
+path_templated_alignment_output_folder=./output/5_templated_alignment
+path_summarised_nt_alignment_output_folder=./output/6_summarised_nt_alignment
+path_summarised_templated_alignment_output_folder=./output/6_summarised_templated_alignment
+path_summarised_templated_alignment_all_output_folder=./output//6_summarised_templated_alignment_all
+path_avg_summarised_nt_alignment_output_folder=./output//7_avg_summarised_nt_alignment
+path_avg_summarised_templated_alignment_output_folder=./output/7_avg_summarised_templated_alignment
+path_avg_summarised_templated_alignment_all_output_folder=./output/7_avg_summarised_templated_alignment_all
+path_graph_processed_data_folder=./output/8_graph_processed_data/
+path_graphs_folder=./output/graphs/
 
 # Summarise isomiRs 
 python ./code/1_summarise_isomiR_SEA.py $path_raw_output_folder $path_summarised_output_folder
@@ -26,9 +37,9 @@ python ./code/1_summarise_isomiR_SEA.py $path_raw_output_folder $path_summarised
 python ./code/2_avg_summarised_isomiRs.py $path_summarised_output_folder $path_avg_replicate_output_folder
 
 # Get precursors 
-species='mm10'
-is_mirbase_gff=True
-is_built_in_genome=True
+species=None
+is_mirbase_gff=False
+is_built_in_genome=False
 python ./code/3_generate_precursor.py $path_summarised_output_folder $path_precursors_output_folder $path_genomic_file $path_coords_file $species $is_mirbase_gff $is_built_in_genome
 
 # Align nt and templated 
