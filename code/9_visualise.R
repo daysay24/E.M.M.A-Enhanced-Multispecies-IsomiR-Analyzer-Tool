@@ -2,6 +2,7 @@ library(ggplot2)
 library(patchwork)
 library(dplyr)
 library(ggrepel)
+library(tidyr)
 
 # Passed arguments
 args <- commandArgs(trailingOnly = TRUE)
@@ -12,10 +13,24 @@ dir.create(file.path(args[[1]]))
 # Visualise graph 1
 graph.data.1 <- read.csv(paste(args[[2]], 'graph_1_data.csv', sep=''))
 names(graph.data.1)[names(graph.data.1) == "type"] <- "Type"
-graph.data.1$group<-as.factor(graph.data.1$group)
+
+# Customize x axis labels to show ratio 
+graph.data.ratio.1<- graph.data.1 %>% 
+  select(Type, rpm, group) %>%
+  pivot_wider(names_from=Type, values_from = rpm) %>% 
+  mutate(ratio=IsomiR/Canonical) 
+x.labels.1 <- c()
+for (row in 1:nrow(graph.data.ratio.1)) {
+  r = graph.data.ratio.1[row, ]
+  x.labels.1 <- append(x.labels.1, paste(r['group'], paste("1", round(r['ratio'], digits=2), sep=":"), sep="\n"))
+}
+graph.data.1$group <- factor(graph.data.1$group, levels = unique(graph.data.ratio.1$group))
+
 graph.1 <- ggplot(data = graph.data.1, aes(x = group, y = rpm, group = Type, color = Type)) +
   geom_line() + 
   geom_point() + 
+  scale_x_discrete(labels=x.labels.1) + 
+  xlab("Group\nCanonical:IsomiR ratio") +
   theme_bw()+
   theme(legend.title = element_text(size = 10, face = "bold"), 
         legend.text = element_text(size = 9), 
@@ -26,14 +41,15 @@ graph.1 <- graph.1 + ggplot(data = graph.data.1, aes(x = group, y = relative_abu
   geom_line() + 
   geom_point() + 
   ylab("%") +
+  xlab("Group") +
   theme_bw() +
   theme(legend.title = element_text(size = 10, face = "bold"), 
         legend.text = element_text(size = 9), 
         axis.text = element_text(size = 9),
         axis.title = element_text(size = 10),
-        plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt")) 
+        plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt"))
 graph.1 <- graph.1 + 
-  plot_layout(ncol = 2, guides = "collect")  
+  plot_layout(ncol = 2, guides = "collect") 
 ggsave(file=paste(args[[1]], 'graph_1.pdf', sep=''), plot = graph.1, height = 5, width = 10)
 
 # Visualise graph 2
@@ -313,6 +329,20 @@ for (row in 1:nrow(grouped.graph.data.6)) {
   indexes = unlist(grouped.graph.data.6[row,'.rows'])
   sub.graph.data.6 <- graph.data.6[indexes,]
   
+  sub.graph.data.6 <- sub.graph.data.6 %>%
+    mutate(int.position = as.integer(Position)) 
+  
+  max_position <- sub.graph.data.6 %>%
+    filter(!is.na(int.position)) %>%
+    group_by(int.position) %>%
+    summarize(total_count = sum(count)) %>%
+    filter(total_count > 0) %>%
+    summarize(max_position = max(int.position)) %>%
+    pull(max_position)
+
+  sub.graph.data.6 <- sub.graph.data.6 %>% 
+    filter(is.na(int.position) | int.position <= max_position)
+
   sub.graph.data.6$Position=factor(sub.graph.data.6$Position, levels = unique(sub.graph.data.6$Position))
   
   if (is.null(graph.6)) {
