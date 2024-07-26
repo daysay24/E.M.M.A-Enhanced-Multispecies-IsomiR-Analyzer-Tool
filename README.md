@@ -59,7 +59,7 @@ R: ggplot2, patchwork, dplyr, ggrepel.
     - Genome sequence: (1) built-in from UCSC or (2) fasta file from users.
     - miRNA annotation: (1) gff file from miRBase or (2) an excel file from users which must have _chr_, _name_, _start_, _end_, _strand_ columns.
 
-    Hence, there are four possible combinations. We provided sample files for Case 1 and Case 4. Here are detailed setting up steps for each case:
+    Hence, there are four possible combinations. We provided sample files for Case 1 and Case 4 (download genome fasta for Schistosoma japonicum [here](https://parasite.wormbase.org/Schistosoma_japonicum_prjna724792/Info/Index), rename to _genome.fa_, save into ./test/s.jap/). Here are detailed setting up steps for each case:
 
     **Case 1:** Built-in genome from UCSC and gff file from miRBase.
 
