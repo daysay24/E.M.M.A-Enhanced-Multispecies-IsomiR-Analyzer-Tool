@@ -59,7 +59,7 @@ R: ggplot2, patchwork, dplyr, ggrepel.
     - Genome sequence: (1) built-in from UCSC or (2) fasta file from users.
     - miRNA annotation: (1) gff file from miRBase or (2) an excel file from users which must have _chr_, _name_, _start_, _end_, _strand_ columns.
 
-    Hence, there are four possible combinations. We provided sample file for case 1. Here are detailed setting up steps for mm10 in each case:
+    Hence, there are four possible combinations. We provided sample files for Case 1 and Case 4. Here are detailed setting up steps for each case:
 
     **Case 1:** Built-in genome from UCSC and gff file from miRBase.
 
@@ -119,9 +119,9 @@ R: ggplot2, patchwork, dplyr, ggrepel.
 
       ```
       /test
-          /mouse
-              /genome.fa
-              /mmu.gff3
+        /mouse
+            /genome.fa
+            /mmu.gff3
       ```
 
     - Modify /run.sh.
@@ -145,18 +145,18 @@ R: ggplot2, patchwork, dplyr, ggrepel.
 
       ```
       /test
-          /mouse
-              /genome.fa
-              /coords.xlsx
+        /s.jap
+          /genome.fa
+          /s.jap.xlsx
       ```
 
-    - Modify /run.sh.
+    - Modify ./run.sh.
 
       For example:
 
       ```bash
-      path_genomic_file=./test/mouse/genome.fa
-      path_coords_file=./test/mouse/mmu.xlsx
+      path_genomic_file=./test/s.jap/genome.fa
+      path_coords_file=./test/s.jap/s.jap.xlsx
       ...
       species=None
       is_mirbase_gff=False

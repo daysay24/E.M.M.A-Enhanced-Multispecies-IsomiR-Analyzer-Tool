@@ -10,7 +10,8 @@ def process_graph1_data():
     # Path to graph processed data files 
     path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged summarised isomiRs of each group
-    avg_files = os.listdir(path_avg_replicate_output_folder)
+    avg_files = sorted(os.listdir(path_avg_replicate_output_folder))
+    print(avg_files)
     for avg_file in avg_files:
         # Read averaged summarised isomiRs of each group
         avg_summarised_isomiRs_df = pd.read_csv(f'{path_avg_replicate_output_folder}/{avg_file}')
@@ -43,7 +44,7 @@ def process_graph2_data():
     # Path to graph processed data files 
     path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged summarised isomiRs of each group
-    avg_files = os.listdir(path_avg_replicate_output_folder)
+    avg_files = sorted(os.listdir(path_avg_replicate_output_folder))
     for avg_file in avg_files:
         # Read averaged summarised isomiRs of each group
         avg_summarised_isomiRs_df = pd.read_csv(f'{path_avg_replicate_output_folder}/{avg_file}')
@@ -69,7 +70,7 @@ def process_graph3_data():
     # Path to graph processed data files 
     path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged summarised isomiRs of each group
-    avg_files = os.listdir(path_avg_replicate_output_folder)
+    avg_files = sorted(os.listdir(path_avg_replicate_output_folder))
     for avg_file in avg_files:
         # Read averaged summarised isomiRs of each group
         avg_summarised_isomiRs_df = pd.read_csv(f'{path_avg_replicate_output_folder}/{avg_file}')
@@ -97,7 +98,7 @@ def process_graph4_data():
     # Path to graph processed data files 
     path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged templated summarised alignment file of each group
-    avg_files = os.listdir(path_avg_summarised_templated_alignment_output_folder)
+    avg_files = sorted(os.listdir(path_avg_summarised_templated_alignment_output_folder))
     for avg_file in avg_files:
         # Read averaged templated summarised alignment file of each group
         avg_templated_summarised_alignment_df = pd.read_csv(f'{path_avg_summarised_templated_alignment_output_folder}/{avg_file}', dtype={'position': 'str'})
@@ -119,7 +120,7 @@ def process_graph5_data():
     # Path to graph processed data files 
     path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged nt summarised alignment file of each group
-    avg_files = os.listdir(path_avg_summarised_nt_alignment_output_folder)
+    avg_files = sorted(os.listdir(path_avg_summarised_nt_alignment_output_folder))
     for avg_file in avg_files:
         # Read averaged nt summarised alignment file of each group
         avg_nt_summarised_alignment_df = pd.read_csv(f'{path_avg_summarised_nt_alignment_output_folder}/{avg_file}',  dtype={'position': 'str'})
@@ -140,7 +141,7 @@ def process_graph6_data():
     # Path to graph processed data files 
     path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged templated summarised alignment all file of each group
-    avg_files = os.listdir(path_avg_summarised_templated_alignment_all_output_folder)
+    avg_files = sorted(os.listdir(path_avg_summarised_templated_alignment_all_output_folder))
     for avg_file in avg_files:
         # Read averaged templated summarised alignment file of each group
         avg_templated_summarised_alignment_all_df = pd.read_csv(f'{path_avg_summarised_templated_alignment_all_output_folder}/{avg_file}',  dtype={'position': 'str'})

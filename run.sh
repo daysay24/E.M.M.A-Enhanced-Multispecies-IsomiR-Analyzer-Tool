@@ -12,9 +12,9 @@ else
 fi
 
 # Paths 
-path_genomic_file=./test/s.jap/genome.fa
-path_coords_file=./test/s.jap/s.jap.xlsx
-path_raw_output_folder=./test/s.jap/isomiR-SEA_outputs
+path_genomic_file=./test/s.jap/genome.fa # change this if necessary
+path_coords_file=./test/s.jap/s.jap.xlsx # change this if necessary
+path_raw_output_folder=./test/s.jap/isomiR-SEA_outputs # change this if necessary
 path_summarised_output_folder=./output/1_summarised_isomiRs
 path_avg_replicate_output_folder=./output/2_avg_replicate_isomiRs
 path_precursors_output_folder=./output/3_precursors
@@ -37,9 +37,9 @@ python ./code/1_summarise_isomiR_SEA.py $path_raw_output_folder $path_summarised
 python ./code/2_avg_summarised_isomiRs.py $path_summarised_output_folder $path_avg_replicate_output_folder
 
 # Get precursors 
-species=None
-is_mirbase_gff=False
-is_built_in_genome=False
+species=None # change this if necessary
+is_mirbase_gff=False # change this if necessary
+is_built_in_genome=False 
 python ./code/3_generate_precursor.py $path_summarised_output_folder $path_precursors_output_folder $path_genomic_file $path_coords_file $species $is_mirbase_gff $is_built_in_genome
 
 # Align nt and templated 

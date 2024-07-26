@@ -86,9 +86,6 @@ path_coords_file = sys.argv[4]
 species = sys.argv[5]
 # Is user using mirbase gff file 
 is_mirbase_gff = True if sys.argv[6] == 'True' else False
-
-print(path_summarised_output_folder, path_precursors_output_folder, path_genomic_file, path_coords_file, species, is_mirbase_gff)
-
 # Is user using built_in genome 
 is_built_in_genome = True if sys.argv[7] == 'True' else False
 
