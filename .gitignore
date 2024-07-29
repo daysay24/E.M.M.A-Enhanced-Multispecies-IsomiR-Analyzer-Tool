@@ -3,3 +3,5 @@ data/*
 !data/0_genomic_data
 
 test/s.jap/genome.fa
+
+.DS_Store
