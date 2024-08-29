@@ -170,3 +170,6 @@ R: ggplot2, patchwork, dplyr, ggrepel.
     ```
 
 **NOTE**: We are using API (= sending http request) to get the precursor sequence from built-in genome, so running _3_generate_precursor.py_ takes a while (15 mins).
+
+bta.gff on mirbase, coordinates for bta-mir-219-5p are wrong.
+if all mature sequence GUCCAAACGCAAUUCUUGUACG is correct,

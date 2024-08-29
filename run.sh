@@ -12,8 +12,8 @@ else
 fi
 
 # Paths 
-path_genomic_file=./test/zma.fna # change this if necessary
-path_coords_file=./test/zma.gff3 # change this if necessary
+path_genomic_file=./test/tni.fna # change this if necessary
+path_coords_file=./test/tni.gff3 # change this if necessary
 path_raw_output_folder=./test/mouse/isomiR-SEA_outputs # change this if necessary
 path_summarised_output_folder=./output/1_summarised_isomiRs
 path_avg_replicate_output_folder=./output/2_avg_replicate_isomiRs
