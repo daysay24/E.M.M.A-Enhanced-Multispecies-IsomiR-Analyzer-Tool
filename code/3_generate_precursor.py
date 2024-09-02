@@ -36,6 +36,13 @@ def match_chromosomes(path_genomic_file, chr_names):
                 print('>' + chr)
             elif chr_names[0] in single_chr_species:
                 print('>' + chr_names[0])
+            elif 'contig' in chr_names[0]:
+                contig_number = int(line.split(' ')[0].split('.')[1])
+                contig_name = f"contig{contig_number}"
+                if contig_name in chr_names:
+                    print('>' + contig_name)
+                else:
+                    print(line.rstrip())
             else:
                 chr = ''
                 for chr_name in chr_names:

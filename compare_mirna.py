@@ -46,7 +46,7 @@ print("In mature.fa, but not in extracted output: ", mmu_mir_name_1 - mmu_mir_na
 print("======================")
 print("In mature.fa, but not in gff: ", mmu_mir_name_1 - mmu_mir_name_3)
 print("======================")
-print("In gff, but not in extracted output: ", mmu_mir_name_2 - mmu_mir_name_3)
+print("In gff, but not in extracted output: ", mmu_mir_name_3 - mmu_mir_name_2)
 print("======================")
 
 # join 2 tables by mir name 
