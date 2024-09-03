@@ -6,9 +6,6 @@ import re
 import sys
 import fileinput
 
-
-single_chr_species = ['hhv507799', 'hehcmvcg', 'ksu75698']
-
 def extract_miR_info(row):
     details = row['details'].split(';')
     if (row['type'] == "miRNA_primary_transcript"):
@@ -34,10 +31,10 @@ def match_chromosomes(path_genomic_file, chr_names):
             if 'tetraodon8' in line:
                 chr = re.search(r">(\w+)", line).group(1)
                 print('>' + chr)
-            elif chr_names[0] in single_chr_species:
+            elif len(chr_names) == 1:
                 print('>' + chr_names[0])
             elif 'contig' in chr_names[0]:
-                contig_number = int(line.split(' ')[0].split('.')[1])
+                contig_number = int(re.search(r'\.([0-9]+)\s', line).group(1))
                 contig_name = f"contig{contig_number}"
                 if contig_name in chr_names:
                     print('>' + contig_name)
@@ -46,8 +43,7 @@ def match_chromosomes(path_genomic_file, chr_names):
             else:
                 chr = ''
                 for chr_name in chr_names:
-                    pattern = rf"\b{chr_name}\b"
-                    match = re.search(pattern, line)
+                    match = re.search(rf"\b{chr_name}\b", line)
                     if match: 
                         chr = chr_name
                         break
@@ -55,8 +51,7 @@ def match_chromosomes(path_genomic_file, chr_names):
                     for chr_name in chr_names:
                         if 'chr' in chr_name:
                             number = chr_name.replace('chr', '')
-                            pattern = rf"\b(?:chromosome|chr)\s?{number}\b"
-                            match = re.search(pattern, line)
+                            match = re.search(rf"\b(?:chromosome|chr)\s?{number}\b", line)
                             if match: 
                                 chr = chr_name
                                 break
@@ -89,7 +84,6 @@ def get_extended_miRNA_coordinates(is_mirbase_gff, match_chr_names, max_nt_diff_
     # Extract chr names 
     genomic_coordinates['chr'] = genomic_coordinates['chr'].str.lower()
     chr_names = list(genomic_coordinates['chr'].unique())
-    print(chr_names)
 
     # create bed coords 
     create_bed_coordinates(genomic_coordinates, max_nt_diff_5p, max_nt_diff_3p, path_precursors_output_folder)   
