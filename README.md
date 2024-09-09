@@ -56,62 +56,12 @@ R: ggplot2, patchwork, dplyr, ggrepel.
 
 2.  Set up genomic data: In order to get the precursor sequences extended from both sides of miRNAs, we need:
 
-    - Genome sequence: (1) built-in from UCSC or (2) fasta file from users.
+    - Genome sequence: A fasta file from users.
     - miRNA annotation: (1) gff file from miRBase or (2) an excel file from users which must have _chr_, _name_, _start_, _end_, _strand_ columns.
 
-    Hence, there are four possible combinations. We provided sample files for Case 1 and Case 4 (download genome fasta for Schistosoma japonicum [here](https://parasite.wormbase.org/Schistosoma_japonicum_prjna724792/Info/Index), rename to _genome.fa_, save into ./test/s.jap/). Here are detailed setting up steps for each case:
+    Hence, there are two possible cases. We provided sample files for both cases (for 2nd case, download genome fasta for Schistosoma japonicum [here](https://parasite.wormbase.org/Schistosoma_japonicum_prjea34885/Info/Index), rename to _s.jap.fa_, save into ./test/s.jap/). Here are detailed setting up steps for each case:
 
-    **Case 1:** Built-in genome from UCSC and gff file from miRBase.
-
-    - Put the gff file from miRBase in a folder.
-
-      For example:
-
-      ```
-      ./test
-          /mouse
-              /mmu.gff3
-      ```
-
-    - Modify /run.sh.
-
-      For example:
-
-      ```bash
-      path_coords_file=./test/mouse/mmu.gff3
-      ...
-      species='mm10'
-      is_mirbase_gff=True
-      is_built_in_genome=True
-      ```
-
-    **Case 2:** Built-in genome from UCSC and an excel file from users.
-
-    - Put the gff file from miRBase in a folder.
-
-      **This must be an excel file with _chr_, _name_, _start_, _end_, _strand_ columns and coordinates are 1-based.**
-
-      For example:
-
-      ```
-      ./test
-          /mouse
-              /mmu.xlsx
-      ```
-
-    - Modify ./run.sh.
-
-      For example:
-
-      ```bash
-      path_coords_file=./test/mouse/mmu.xlsx
-      ...
-      species='mm10'
-      is_mirbase_gff=False
-      is_built_in_genome=True
-      ```
-
-    **Case 3:** Fasta file from users and gff file from miRBase.
+    **Case 1:** Fasta file from users and gff file from miRBase.
 
     - Put the fasta genome from users and gff file from miRBase in a folder.
 
@@ -120,7 +70,7 @@ R: ggplot2, patchwork, dplyr, ggrepel.
       ```
       /test
         /mouse
-            /genome.fa
+            /mmu.fa
             /mmu.gff3
       ```
 
@@ -129,15 +79,14 @@ R: ggplot2, patchwork, dplyr, ggrepel.
       For example:
 
       ```bash
-      path_genomic_file=./test/mouse/genome.fa
+      path_genomic_file=./test/mouse/mmu.fa
       path_coords_file=./test/mouse/mmu.gff3
       ...
-      species=None
       is_mirbase_gff=True
-      is_built_in_genome=False
+      match_chr_names=True # If chromosomes between two files match already, match_chr_names should be False to save computational time.
       ```
 
-    **Case 4:** Fasta file from users and an excel file from users.
+    **Case 2:** Fasta file from users and an excel file from users.
 
     - Put the fasta genome and an excel file from users in a folder.
 
@@ -146,7 +95,7 @@ R: ggplot2, patchwork, dplyr, ggrepel.
       ```
       /test
         /s.jap
-          /genome.fa
+          /s.jap.fa
           /s.jap.xlsx
       ```
 
@@ -155,12 +104,11 @@ R: ggplot2, patchwork, dplyr, ggrepel.
       For example:
 
       ```bash
-      path_genomic_file=./test/s.jap/genome.fa
+      path_genomic_file=./test/s.jap/s.jap.fa
       path_coords_file=./test/s.jap/s.jap.xlsx
       ...
-      species=None
       is_mirbase_gff=False
-      is_built_in_genome=False
+      match_chr_names=True # If chromosomes between two files match already, match_chr_names should be False to save computational time.
       ```
 
 3.  Run ./run.sh file
@@ -168,8 +116,3 @@ R: ggplot2, patchwork, dplyr, ggrepel.
     ```bash
     bash run.sh
     ```
-
-**NOTE**: We are using API (= sending http request) to get the precursor sequence from built-in genome, so running _3_generate_precursor.py_ takes a while (15 mins).
-
-bta.gff on mirbase, coordinates for bta-mir-219-5p are wrong.
-if all mature sequence GUCCAAACGCAAUUCUUGUACG is correct,
