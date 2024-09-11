@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Delete all .DS_store files 
+find . -name ".DS_Store" -type f -delete
+
 # Create an output folder if not exist. If already exist, delete all files 
 path_output_folder='./output'
 # Check if the output directory exists
