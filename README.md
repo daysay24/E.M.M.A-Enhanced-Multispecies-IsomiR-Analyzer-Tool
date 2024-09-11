@@ -10,7 +10,7 @@ We develop a program that takes miRNA sequencing reads as input files. These rea
 
 The outputs:
 
-- Additional information added to existing output files of isomiR-SEA software, including: annotation, number of nt difference at each end, number of snps. Besides, we identified some inconsistencies in the way isomiR-SEA categorise isomiR type so we refine their categorisation.
+- Additional information added to existing output files of isomiR-SEA software, including: annotation, number of nt difference at each end, number of snps. We provide a simiplied annoation, catergorisation and visualisation of isomiRs.
 
 - A set of visualisations that provide insights into the isomiR data:
 
@@ -33,7 +33,7 @@ R: ggplot2, patchwork, dplyr, ggrepel.
 
 1.  Put all outputs of isomiR-SEA in one folder: In this folder, there could be one or multiple subfolders, each represents a group (treatment, stage, time points, etc.) which contains one or multiple replicates.
 
-    For example: We provided an example folder /test/mouse/isomiR-SEA_outputs. There are 2 time points (D0 and 18hr). Each group has two replicates: D0 includes D0_rpt1.txt and D0_rpt2.txt and 18hr includes 18hr_rpt1.txt and 18hr_rpt2.txt.
+    For example: We provided an example folder /test/mouse/isomiR-SEA_outputs. There are 2 time points (D0 and 18hr). Each group has two replicates: D0 includes D0_rpt1.txt and D0_rpt2.txt and 18hr includes 18hr_rpt1.txt and 18hr_rpt2.txt. An additional example folder /test/s.jap/isomiR-SEA_outputs has also bene provided. 
 
     ```
     ./test
