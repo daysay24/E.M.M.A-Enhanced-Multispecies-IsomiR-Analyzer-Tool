@@ -4,7 +4,33 @@ import os
 import sys
 
 def align_isomiR_to_pre_miRNA(max_nt_diff_5p, nt_diff_5p, pre_seq, isomiR_seq):
-    """Align isomiR sequence to pre-miRNA sequence based on isomiR type."""
+    """Align an isomiR sequence to an extended precursor sequence. 
+    The function returns the new isomiR sequence having the same length with the extended precursor sequence, in which unaligned positions are filled with spaces.
+
+    For example,
+    
+    Extended precursor sequence : "AUGCUAUCCCGCUAAUGCUAUCCCGCU"
+    
+    isomiR :                          "UAUCCCGCUAAUGCUAU"      
+
+    New isomiR:                   "     UAUCCCGCUAAUGCUAU     "
+
+    Parameters
+    ----------
+    max_nt_diff_5p : int
+        The maximum number of nucleotide difference at 5' end across all isomiRs.
+    nt_diff_5p : int 
+        The number of nucleotide added to / trimmed from the 5' of the canonical. 
+    pre_seq : str 
+        The extended precursor sequence of a miRNA, which is extracted by adding max_nt_diff_5p and max_nt_diff_3p nucleotids to 5' and 3' ends of that miRNA. 
+    isomiR_seq : str 
+        The isomiR sequence. 
+    
+    Returns
+    ------
+    str 
+        An isomiR sequence aligned to the extended precursor sequence. 
+    """
     start_position = max_nt_diff_5p - nt_diff_5p
     aligned_seq = ' ' * start_position + isomiR_seq # start_position should be named gaps in pre-cursor
     aligned_seq += ' ' * (len(pre_seq) - len(aligned_seq))
@@ -12,7 +38,23 @@ def align_isomiR_to_pre_miRNA(max_nt_diff_5p, nt_diff_5p, pre_seq, isomiR_seq):
     return aligned_seq
 
 def match_letters(pri_seq, aligned_isomiR_seq):
-    """Match letters of aligned isomiR sequence with pri-miRNA sequence."""
+    """Convert an isomiR to a string that only consist of + (templated) and - (non-templated) by comparing the isomiR with the extended precursor. 
+    
+    At each position of an isomiR: 
+    - The nucleotide of the isomiR is the same as that of the extended precursor sequence => +.
+    - The nucleotide of the isomiR is the same as that of the extended precursor sequence => -.
+
+    For example, 
+
+    Extended precursor sequence : "AUGCUAUCCCGCUAAUGCUAUCCCGCU"
+    
+    isomiR :                          "UAUCCCGCUAAUGCUAU"      
+
+    New isomiR:                   "     UAUCCCGCUAAUGCUAU     "    
+    
+    Returns
+
+    """
     matched_letters = []
     for pre_letter, iso_letter in zip(pri_seq, aligned_isomiR_seq):
         pre_letter = pre_letter.lower()
@@ -26,9 +68,11 @@ def match_letters(pri_seq, aligned_isomiR_seq):
     return matched_letters
 
 def extended_or_truncated(nt_5p_diff, nt_3p_diff):
-    if (nt_5p_diff < 0 and nt_3p_diff == 0) or (nt_5p_diff == 0 and nt_3p_diff < 0) or (nt_5p_diff < 0 and nt_3p_diff < 0):
+    # if (nt_5p_diff < 0 and nt_3p_diff == 0) or (nt_5p_diff == 0 and nt_3p_diff < 0) or (nt_5p_diff < 0 and nt_3p_diff < 0):
+    if (nt_5p_diff < 0 or nt_3p_diff < 0)
         return 'truncated'
-    elif (nt_5p_diff > 0 and nt_3p_diff == 0) or (nt_5p_diff == 0 and nt_3p_diff > 0) or (nt_5p_diff > 0 and nt_3p_diff > 0):
+    # elif (nt_5p_diff > 0 and nt_3p_diff == 0) or (nt_5p_diff == 0 and nt_3p_diff > 0) or (nt_5p_diff > 0 and nt_3p_diff > 0):
+    elif (nt_5p_diff > 0 or nt_3p_diff > 0):
         return 'extended'
     else: 
         return ''

@@ -33,7 +33,7 @@ R: ggplot2, patchwork, dplyr, ggrepel.
 
 1.  Put all outputs of isomiR-SEA in one folder: In this folder, there could be one or multiple subfolders, each represents a group (treatment, stage, time points, etc.) which contains one or multiple replicates.
 
-    For example: We provided an example folder /test/mouse/isomiR-SEA_outputs. There are 2 time points (D0 and 18hr). Each group has two replicates: D0 includes D0_rpt1.txt and D0_rpt2.txt and 18hr includes 18hr_rpt1.txt and 18hr_rpt2.txt. An additional example folder /test/s.jap/isomiR-SEA_outputs has also bene provided. 
+    For example: We provided an example folder /test/mouse/isomiR-SEA_outputs. There are 2 time points (D0 and 18hr). Each group has two replicates: D0 includes D0_rpt1.txt and D0_rpt2.txt and 18hr includes 18hr_rpt1.txt and 18hr_rpt2.txt. An additional example folder /test/s.jap/isomiR-SEA_outputs has also bene provided.
 
     ```
     ./test
@@ -50,7 +50,7 @@ R: ggplot2, patchwork, dplyr, ggrepel.
     Then in the ./run.sh file, set path_raw_output_folder = <path to that folder>
     For example:
 
-        ```
+        ```bash
         path_raw_output_folder=./test/mouse/isomiR-SEA_outputs
         ```
 
@@ -81,6 +81,7 @@ R: ggplot2, patchwork, dplyr, ggrepel.
       ```bash
       path_genomic_file=./test/mouse/mmu.fa
       path_coords_file=./test/mouse/mmu.gff3
+      path_raw_output_folder=./test/mouse/isomiR-SEA_outputs
       ...
       is_mirbase_gff=True
       match_chr_names=True # If chromosomes between two files match already, match_chr_names should be False to save computational time.
@@ -106,6 +107,7 @@ R: ggplot2, patchwork, dplyr, ggrepel.
       ```bash
       path_genomic_file=./test/s.jap/s.jap.fa
       path_coords_file=./test/s.jap/s.jap.xlsx
+      path_raw_output_folder=./test/s.jap/isomiR-SEA_outputs
       ...
       is_mirbase_gff=False
       match_chr_names=True # If chromosomes between two files match already, match_chr_names should be False to save computational time.
