@@ -50,9 +50,9 @@ R: ggplot2, patchwork, dplyr, ggrepel.
     Then in the ./run.sh file, set path_raw_output_folder = <path to that folder>
     For example:
 
-        ```bash
-        path_raw_output_folder=./test/mouse/isomiR-SEA_outputs
-        ```
+    ```bash
+    path_raw_output_folder=./test/mouse/isomiR-SEA_outputs
+    ```
 
 2.  Set up genomic data: In order to get the precursor sequences extended from both sides of miRNAs, we need:
 
