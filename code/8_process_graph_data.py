@@ -1,7 +1,7 @@
 import pandas as pd 
 import os
 import sys
-# Graph 1: summarise data for showing miRNAs and isomiRs total reads (rpm) and relative abundance as percentage of total reads, across stages 
+# Graph 1: Summarise data for showing miRNAs and isomiRs total reads (rpm) and relative abundance as percentage of total reads. 
 def process_graph1_data():
     # All groups df
     all_group_df = pd.DataFrame()
@@ -11,13 +11,13 @@ def process_graph1_data():
     path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged summarised isomiRs of each group
     avg_files = sorted(os.listdir(path_avg_replicate_output_folder))
-    print(avg_files)
+
     for avg_file in avg_files:
         # Read averaged summarised isomiRs of each group
         avg_summarised_isomiRs_df = pd.read_csv(f'{path_avg_replicate_output_folder}/{avg_file}')
         # Select a subset of important columms 
         type_df = avg_summarised_isomiRs_df[['grouped_type', 'rpm']]
-        # Add a new column type: if grouped_type is canonical, type is miR. otherwise, type is miR
+        # Add a new column type: if grouped_type is canonical, type is Canonical. otherwise, type is isomiR
         type_df['type'] = type_df['grouped_type'].apply(lambda gt: 'Canonical' if gt == 'Canonical' else 'IsomiR')
         # Drop grouped_type column 
         type_df = type_df.drop(columns=['grouped_type'])
@@ -35,7 +35,7 @@ def process_graph1_data():
             all_group_df = pd.concat([all_group_df, type_df], ignore_index=True)
     all_group_df.to_csv(f'{path_graph_processed_data_folder}/graph_1_data.csv', index=False)
 
-# Graph 2: summarise data for showing the relative abundance as percentage of total reads of types (5p, 3p, both, canonical, others) across stages
+# Graph 2: Summarise data for showing the relative abundance as percentage of total reads of types (5p, 3p, both, canonical, others).
 def process_graph2_data():
     # All groups df
     all_group_df = pd.DataFrame()
@@ -61,7 +61,7 @@ def process_graph2_data():
             all_group_df = pd.concat([all_group_df, grouped_type_df], ignore_index=True)
     all_group_df.to_csv(f'{path_graph_processed_data_folder}/graph_2_data.csv', index=False)
 
-# summarise data for showing proportions of 5p/3p addition/truncation at different positions (3e1, 3e2, 3e3,..., 3t1, 3t2, 5e1, 5e2,..., 5t1, 5t2, 5t3, ...) across stages 
+# Summarise data for showing proportions of 5p/3p addition/truncation at different positions (3e1, 3e2, 3e3,..., 3t1, 3t2, 5e1, 5e2,..., 5t1, 5t2, 5t3, ...) across stages 
 def process_graph3_data():
     # All groups df
     all_group_df = pd.DataFrame()
@@ -89,7 +89,7 @@ def process_graph3_data():
             all_group_df = pd.concat([all_group_df, type_nt_df], ignore_index=True)
     all_group_df.to_csv(f'{path_graph_processed_data_folder}/graph_3_data.csv', index=False)
 
-# summarise data for showing proportion of templated vs untemplated at addition positions in different groups. 
+# Summarise data for showing proportion of templated vs nontemplated at addition positions in different groups. 
 def process_graph4_data():
     # All groups df
     all_group_df = pd.DataFrame()

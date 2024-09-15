@@ -70,9 +70,9 @@ for (row in 1:nrow(grouped.graph.data.2)) {
       geom_bar(stat="identity", width=1, color="white") +
       coord_polar("y", start=0) +
       theme_void() +
-      geom_label_repel(aes(label = paste(round(unique_tag/sum(unique_tag)*100,1), "%")),
+      geom_label_repel(aes(label = paste(round(rpm/sum(rpm)*100,1), "%")),
                        color="white", direction = "y", position = position_stack(vjust = .5), size = 3.5, show.legend = FALSE)+
-      ggtitle(paste(group.name, "isomiRNAs (rpm)", sep=" "))+
+      ggtitle(paste(group.name, "isomiRs (rpm)", sep=" "))+
       theme(plot.title = element_text(hjust = 0.5, size = 12.5, face = "bold"), 
             legend.title = element_text(size = 10, face = "bold"), 
             legend.text = element_text(size = 9))
@@ -81,9 +81,9 @@ for (row in 1:nrow(grouped.graph.data.2)) {
       geom_bar(stat="identity", width=1, color="white") +
       coord_polar("y", start=0) +
       theme_void() +
-      geom_label_repel(aes(label = paste(round(unique_tag/sum(unique_tag)*100,1), "%")),
+      geom_label_repel(aes(label = paste(round(rpm/sum(rpm)*100,1), "%")),
                        color="white", position = position_stack(vjust = .5), size = 3.5, show.legend = FALSE)+
-      ggtitle(paste(group.name, "isomiRNAs (rpm)", sep=" "))+
+      ggtitle(paste(group.name, "isomiRs (rpm)", sep=" "))+
       theme(plot.title = element_text(hjust = 0.5, size = 12.5, face = "bold"), 
             legend.title = element_text(size = 10, face = "bold"),
             legend.text = element_text(size = 9))
@@ -95,7 +95,7 @@ for (row in 1:nrow(grouped.graph.data.2)) {
     theme_void() +
     geom_label_repel(aes(label = paste(round(unique_tag/sum(unique_tag)*100,1), "%")),
                color="white", position = position_stack(vjust = .5), size = 3.5, show.legend = FALSE)+
-    ggtitle(paste(group.name, "isomiRNAs (unique tag)", sep=" "))+
+    ggtitle(paste(group.name, "isomiRs (unique tag)", sep=" "))+
     theme(plot.title = element_text(hjust = 0.5, size = 12.5, face = "bold"),
           legend.title = element_text(size = 10, face = "bold"),
           legend.text = element_text(size = 9))

@@ -20,7 +20,7 @@ The outputs:
 
   Graph 3: RPM and unique tags of isomiR types (addition/truncation + nt) in different groups.
 
-  Graph 4: Proportion of templated vs untemplated at addition positions in different groups.
+  Graph 4: Proportion of templated vs nontemplated at addition positions in different groups.
 
   Graph 5: Proportion of nucleotides (A, U, C, G) at addition positions in different groups.
 

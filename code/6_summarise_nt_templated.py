@@ -4,6 +4,38 @@ import os
 import sys
 
 def get_extension_values(r, max_nt_diff_5p, max_nt_diff_3p):
+    """Get the matching symbol or nucleotide at extension positions (5e1, 5e2, 5e3, ..., 3e1, 3e2, 3e3e,...) for each isomiR.
+
+    Parameters
+    ----------
+    r : pandas.Series 
+        A 1D array that stores details of an isomiRs such as sequence, matching symbol / nucleotides at each position. 
+        Indexes correspond to column names, values correspond to cell values. 
+    max_nt_diff_5p : int 
+        The maximum number of nucleotide difference at 5' end across all isomiRs.
+    max_nt_diff_3p : int 
+        The maximum number of nucleotide difference at 3' end across all isomiRs.
+
+    
+    Example
+    -----------
+    ```
+    r (nt alignment) : sja-bantam,   UGAGAUCGCGAUUAAAGCUGGU        ,False,,,,,u,g,a,g,a,u,c,g,c,g,a,u,u,a,a,a,g,c,u,g,g,u,,,,,,,,,,,
+    max_nt_diff_5p : 3
+    max_nt_diff_3p : 8
+    Output (for nt alignment file) : ['a','g','u','a','a','g','c','u','g','g','u'] - the nucleotides at 5e1,5e2,5e3,3e1,3e2,3e3,3e4,3e5,3e6,3e7,3e8.
+
+    r (templated alignment) : sja-bantam,   UGGGAUCGCGAUUAAAGCUGGA        ,False,,,,,+,+,-,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,-,,,,,,,,,,,
+    max_nt_diff_5p : 3
+    max_nt_diff_3p : 8
+    Output (for templated alignment file) : ['-','+','+','+','+','+','+','+','+','+','-'] - the matching symbols at 5e1,5e2,5e3,3e1,3e2,3e3,3e4,3e5,3e6,3e7,3e8.
+    ```
+    
+    Returns
+    -------
+    pandas.Series 
+        A list of matching symbols or nucleotides at extension positions.
+    """
     values = []
     pre_len = len(r['pre_seq'])
     for i in range(max_nt_diff_5p, 0, -1):
@@ -13,21 +45,61 @@ def get_extension_values(r, max_nt_diff_5p, max_nt_diff_3p):
     return pd.Series(values)
 
 def summarise_nt_alignment(path_nt_alignment_file, path_summarised_nt_alignment_file, max_nt_diff_5p, max_nt_diff_3p):
-    # Read the nt alignment replicate file 
+    """Calculate the nucleotide frequency at extension positions and save to the summarised nt alignment file.
+    
+    Parameters
+    ----------
+    path_nt_alignment_file : str 
+        Path to nt alignment file. 
+    path_summarised_nt_alignment_file : str
+        Path to summarised nt alignment (for extension positions) file. 
+    max_nt_diff_5p : int 
+        The maximum number of nucleotide difference at 5' end across all isomiRs.
+    max_nt_diff_3p : int 
+        The maximum number of nucleotide difference at 3' end across all isomiRs.
+
+    Example
+    ----------- 
+    ```
+    Extension positions : 5e1, 5e2, 5e3, 3e1, 3e2, 3e3, 3e4, 3e5, 3e6, 3e7, 3e8.
+    sja-bantam :    u,g,g,u,g,u,a,c,g,c,a
+    sja-bantam :    a,g,a,u,c,a,u,c,g,a,a
+    sja-miR-10-3p : a,u,u,c,g,a,g,c,g,c,g
+    sja-miR-10-3p : u,g,a,u,a,u,a,c,u,u,u
+
+
+    Output :
+    position | nucleotide | value
+    5'e1     |          a |     2
+    5'e1     |          u |     2        
+    5'e1     |          c |     0
+    5'e1     |          g |     0
+    5'e2     |          a |     0
+    5'e2     |          u |     1
+    5'e2     |          c |     0
+    5'e2     |          g |     3
+    ....     |        ... |   ...
+    ```
+
+    Returns
+    -------
+    None. A summarised nt alignment file that stores the nucleotide frequency at extension positions is generated. 
+    """
+    # Read the nt alignment file 
     nt_alignment = pd.read_csv(path_nt_alignment_file)
 
-    # create a list of columns for extension positions at 5p
+    # Create a list of columns for extension positions at 5p
     extension_5p_cols = [ f"5'e{i + 1}" for i in range(max_nt_diff_5p)]
-    # create a list of columns for extension positions at 3p
+    # Create a list of columns for extension positions at 3p
     extension_3p_cols = [ f"3'e{i + 1}" for i in range(max_nt_diff_3p)]
-    # extension cols 
+    # Combine 5 extension cols and 3 extension cols
     extension_cols = extension_5p_cols + extension_3p_cols
 
     # Remove precursor rows 
     nt_alignment = nt_alignment[nt_alignment['is_pre'] == False]
-    # For each row, get values for 5e1, 5e2, 5e3,..., 3e1, 3e2,... if that is an miRNA/isomiR 
+    # For each isomiR/canonical, get nucleotide at 5e1, 5e2, 5e3,..., 3e1, 3e2,... 
     nt_alignment[extension_cols] = nt_alignment.apply(lambda r: get_extension_values(r, max_nt_diff_5p, max_nt_diff_3p), axis=1)
-    # Summarise for nt 
+    # Create a dataframe that stores the nucleotide frequency at extension positions
     nt_summary = pd.DataFrame(columns=['position', 'nucleotide', 'value'])
     for col in extension_cols: 
         freq_counts = Counter(list(nt_alignment[col]))
@@ -37,37 +109,114 @@ def summarise_nt_alignment(path_nt_alignment_file, path_summarised_nt_alignment_
     nt_summary.to_csv(path_summarised_nt_alignment_file, index = False)
 
 def summarise_templated_alignment(path_templated_alignment_file, path_summarised_templated_alignment_file, max_nt_diff_5p, max_nt_diff_3p):
-    # Read the templated alignment replicate file 
+    """Calculate the templated / nontemplated frequency at extension positions and save to the summarised templated alignment file.
+    
+    Parameters
+    ----------
+    path_templated_alignment_file : str 
+        Path to templated alignment file. 
+    path_summarised_templated_alignment_file : str
+        Path to summarised templated alignment (for extension positions) file. 
+    max_nt_diff_5p : int 
+        The maximum number of nucleotide difference at 5' end across all isomiRs.
+    max_nt_diff_3p : int 
+        The maximum number of nucleotide difference at 3' end across all isomiRs.
+
+    Example
+    ------- 
+    ```
+    Extension positions : 5e1, 5e2, 5e3, 3e1, 3e2, 3e3, 3e4, 3e5, 3e6, 3e7, 3e8.
+    sja-bantam :     +,+,+,+,+,+,+,-,+,-,+
+    sja-bantam :     -,-,+,+,+,+,+,+,+,-,-
+    sja-miR-10-3p :  +,+,+,-,-,-,+,-,+,+,-
+    sja-miR-10-3p :  -,+,+,+,+,+,+,+,-,-,-
+
+
+    Output :
+    position | templated   | value
+    5'e1     |  Templated  |     2
+    5'e1     |Nontemplated |     2        
+    5'e2     |  Templated  |     3
+    5'e2     |Nontemplated |     1
+    5'e3     |  Templated  |     4
+    5'e3     |Nontemplated |     0
+    3'e1     |  Templated  |     3
+    3'e2     |Nontemplated |     1
+    ....     |        ...  |   ...
+    ```
+
+    Returns
+    -------
+    None. A summarised templated alignment file that stores the templated / nontemplated frequency at extension positions is generated. 
+    """
+    # Read the templated alignment file 
     templated_alignment = pd.read_csv(path_templated_alignment_file)
-    # create a list of columns for extension positions at 5p
+    # Create a list of columns for extension positions at 5p
     extension_5p_cols = [ f"5'e{i + 1}" for i in range(max_nt_diff_5p)]
-    # create a list of columns for extension positions at 3p
+    # Create a list of columns for extension positions at 3p
     extension_3p_cols = [ f"3'e{i + 1}" for i in range(max_nt_diff_3p)]
-    # extension cols 
+    # Combine 5 extension cols and 3 extension cols
     extension_cols = extension_5p_cols + extension_3p_cols
 
     # Remove precursor rows 
     templated_alignment = templated_alignment[templated_alignment['is_pre'] == False]
-    # For each row, get values for 5e1, 5e2, 5e3,..., 3e1, 3e2,... if that is an miRNA/isomiR 
+    # For each miRNA/isomiR, get values at 5e1, 5e2, 5e3,..., 3e1, 3e2,... 
     templated_alignment[extension_cols] = templated_alignment.apply(lambda r: get_extension_values(r, max_nt_diff_5p, max_nt_diff_3p), axis=1)
-    # Summarise for templated 
+    # Create a dataframe that stores the templated / nontemplated frequency at extension positions
     templated_summary = pd.DataFrame(columns=['position', 'templated', 'value'])
     for col in extension_cols: 
         freq_counts = Counter(list(templated_alignment[col]))
         templated_value = freq_counts['+'] if '+' in freq_counts else 0
-        untemplated_value = freq_counts['-'] if '+' in freq_counts else 0
+        untemplated_value = freq_counts['-'] if '-' in freq_counts else 0
         templated_summary.loc[len(templated_summary.index)] = [col, 'Templated', templated_value]
-        templated_summary.loc[len(templated_summary.index)] = [col, 'Untemplated', untemplated_value]
-        templated_summary.to_csv(path_summarised_templated_alignment_file, index = False)
+        templated_summary.loc[len(templated_summary.index)] = [col, 'Nontemplated', untemplated_value]
+    templated_summary.to_csv(path_summarised_templated_alignment_file, index = False)
 
 def summarise_templated_alignment_all(path_templated_alignment_file, path_summarised_templated_alignment_all_file, max_nt_diff_5p):
-    # Read the templated alignment replicate file 
+    """Calculate the templated / nontemplated frequency at all positions and save to the summarised templated alignment file. 
+
+    Parameters
+    ----------
+    path_templated_alignment_file : str 
+        Path to templated alignment file. 
+    path_summarised_templated_alignment_all_file : str
+        Path to summarised templated alignment for (all positions) file. 
+    max_nt_diff_5p : str
+        The maximum number of nucleotide difference at 5' end across all isomiRs.
+
+    Example
+    -------
+    ```
+    sja-bantam,   UGAGAUCGCGAUUAAAGCUGGUC       ,False,extended,,,,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,-,,,,,,,,,,
+    sja-bantam,   UGAGAUCGCGAUUAAAGCUGGUAAU     ,False,extended,,,,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,-,-,+,,,,,,,,
+    sja-miR-1,   UGGAAUGUGGCGAAGUAUGGUCA       ,False,extended,,,,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,-,,,,,,,,,,
+    sja-miR-1,   UGAAAUGUGGCGAAGUAUGGUCU       ,False,extended,,,,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,,,,,,,,,,
+
+    Output : 
+    type     | position | templated   | value
+    extended | 5'e1     |  Templated  |     0
+    extended | 5'e1     |Nontemplated |     0      
+    extended | 5'e2     |  Templated  |     0
+    extended | 5'e2     |Nontemplated |     0
+    extended | 1        |  Templated  |     4
+    extended | 1        |Nontemplated |     0
+    ....     |     ...  |   ...
+    extended | 23       |  Templated  |     1
+    extended | 23       |Nontemplated |     3
+    ....     |     ...  |   ...
+    ```
+
+    Returns 
+    -------
+    None. A summarised templated alignment file that stores the templated / nontemplated frequency at all positions is generated. 
+    """
+    # Read the templated alignment file 
     templated_alignment = pd.read_csv(path_templated_alignment_file)
     # Remove precursor rows 
     templated_alignment = templated_alignment[templated_alignment['is_pre'] == False]
     # Retain extended or truncated isomiRs 
     templated_alignment = templated_alignment[templated_alignment['extended_or_truncated'].isin(['extended', 'truncated'])]
-    # Summarise for templated 
+    # Create a dataframe that stores the templated / nontemplated frequency at all positions
     templated_summary = pd.DataFrame(columns=['type', 'position', 'templated', 'value'])
     # Group by extended / truncated 
     grouped_extended_or_truncated = templated_alignment.groupby('extended_or_truncated')
@@ -79,7 +228,7 @@ def summarise_templated_alignment_all(path_templated_alignment_file, path_summar
         for col in cols: 
             freq_counts = Counter(list(extended_or_truncated_group[col]))
             templated_value = freq_counts['+'] if '+' in freq_counts else 0
-            untemplated_value = freq_counts['-'] if '+' in freq_counts else 0
+            untemplated_value = freq_counts['-'] if '-' in freq_counts else 0
             col = int(col)
             if extended_or_truncated == 'extended':
                 col = f"5'e{max_nt_diff_5p - col + 1}" if col <= max_nt_diff_5p else col - max_nt_diff_5p
@@ -90,7 +239,7 @@ def summarise_templated_alignment_all(path_templated_alignment_file, path_summar
                     col = col - max_nt_diff_5p
                 
             templated_summary.loc[len(templated_summary.index)] = [extended_or_truncated, col, 'Templated', templated_value]
-            templated_summary.loc[len(templated_summary.index)] = [extended_or_truncated, col, 'Untemplated', untemplated_value]
+            templated_summary.loc[len(templated_summary.index)] = [extended_or_truncated, col, 'Nontemplated', untemplated_value]
     templated_summary.to_csv(path_summarised_templated_alignment_all_file, index = False)
 
 # Path to nt alignment output files 
@@ -103,7 +252,7 @@ path_summarised_nt_alignment_output_folder = sys.argv[3]
 path_summarised_templated_alignment_output_folder = sys.argv[4]
 # Path to summarised templated alignment all positions output files 
 path_summarised_templated_alignment_all_output_folder = sys.argv[5]
-# List of group folders (e.g NEJ, JUV, AD)
+# List of group folders
 nt_group_folders = os.listdir(path_nt_alignment_output_folder)
 templated_group_folders = os.listdir(path_templated_alignment_output_folder)
 # Path to extended precursor sequences file 
@@ -114,9 +263,9 @@ precursor_output_file = [file for file in os.listdir(path_precursors_output_fold
 max_nt_diff_5p, max_nt_diff_3p = int(precursor_output_file.split('_')[0]), int(precursor_output_file.split('_')[1])
 
 for nt_group, templated_group in zip(nt_group_folders, templated_group_folders):
-    # Get the list of nt alignment replicate files
+    # Get the list of nt alignment files of that group
     rep_nt_files = os.listdir(f'{path_nt_alignment_output_folder}/{nt_group}')
-    # Get the list of templated alignment replicate files
+    # Get the list of templated alignment files of that group
     rep_templated_files = os.listdir(f'{path_templated_alignment_output_folder}/{templated_group}')
 
     if not os.path.exists(f'{path_summarised_nt_alignment_output_folder}/{nt_group}'):
