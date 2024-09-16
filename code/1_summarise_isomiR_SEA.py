@@ -147,6 +147,8 @@ for group in group_folders:
         })
         # Retain the mirna_name   
         isomiR_SEA_output['mirna_name'] = isomiR_SEA_output['mirna_name'].apply(lambda r: r.replace('>', '').split(' ')[0])
+        # Exclude reads having N inside it
+        isomiR_SEA_output = isomiR_SEA_output[isomiR_SEA_output['tag_sequence'].str.contains('N') == False]
         # Add 5p_nt_diff, snp_nt, 3p_nt_diff, type, annotation columns 
         isomiR_SEA_output[['5p_nt_diff', 'snp_nt', '3p_nt_diff', 'type', 'annotation']] = isomiR_SEA_output.apply(lambda r: add_columns(r), axis = 1)
         
