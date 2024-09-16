@@ -128,6 +128,11 @@ def add_columns(row: pd.Series):
 path_raw_output_folder = sys.argv[1]
 # Path to the summarised isomiR outputs folder
 path_summarised_output_folder = sys.argv[2]
+# Read count threshold to filter tag sequence for analysis
+read_count_threshold = int(sys.argv[3])
+
+# List of all tag sequences and their sum of read counts across all samples e.g {'AACCCUGUAGACCCGAGUUUGG': 34, 'UGAAAGACGAUGGUAGUGAGAUG': 10, 'ACCCUUGUUCGACUGUGA': 8, ...}
+sum_read_counts = {}
 
 # List of all sample groups 
 group_folders = os.listdir(path_raw_output_folder)
@@ -152,7 +157,30 @@ for group in group_folders:
         # Add 5p_nt_diff, snp_nt, 3p_nt_diff, type, annotation columns 
         isomiR_SEA_output[['5p_nt_diff', 'snp_nt', '3p_nt_diff', 'type', 'annotation']] = isomiR_SEA_output.apply(lambda r: add_columns(r), axis = 1)
         
+        # Get list of tag sequences found so far 
+        found_tag_sequences = list(sum_read_counts.keys())
+        # Loop through each tag sequence
+        for _, r in isomiR_SEA_output.iterrows(): 
+            if r['tag_sequence'] in found_tag_sequences: 
+                sum_read_counts[r['tag_sequence']] = sum_read_counts[r['tag_sequence']] + r['#count_tags']
+            else: 
+                sum_read_counts[r['tag_sequence']] = r['#count_tags']
+
         # Create folder if not exist 
         if not os.path.exists(f'{path_summarised_output_folder}/{group}'):
             os.makedirs(f'{path_summarised_output_folder}/{group}')
+        isomiR_SEA_output.to_csv(f'{path_summarised_output_folder}/{group}/{rep_file}', index=False)
+
+# Get tag sequences having read counts >= read_count_threshold
+kept_tag_sequences = [k for k,v in sum_read_counts.items() if v >= read_count_threshold]
+# Loop through each group
+for group in group_folders:
+    # Get the list of replicate files
+    rep_files = os.listdir(f'{path_summarised_output_folder}/{group}')
+    # Loop through each replicate of that group 
+    for rep_file in rep_files:
+        # Read summarised isomiR-SEA output file of that replicate
+        isomiR_SEA_output = pd.read_csv(f'{path_summarised_output_folder}/{group}/{rep_file}')
+        # Keep tag sequences having read counts > 10 
+        isomiR_SEA_output = isomiR_SEA_output[isomiR_SEA_output['tag_sequence'].isin(kept_tag_sequences)]
         isomiR_SEA_output.to_csv(f'{path_summarised_output_folder}/{group}/{rep_file}', index=False)
