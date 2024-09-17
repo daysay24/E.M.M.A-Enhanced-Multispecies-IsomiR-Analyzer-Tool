@@ -307,15 +307,84 @@ graph.5 <- graph.5 +
   plot_layout(ncol = 2, guides = "collect") 
 ggsave(file=paste(args[[1]], 'graph_5.pdf', sep=''), plot = graph.5, width = 10 * type_ext.scaling, height = 10 * group.scaling, limitsize = FALSE)
 
-# Visualise graph 6
+# # Visualise graph 6 (Deprecated)
+# graph.data.6 <- read.csv(paste(args[[2]], 'graph_6_data.csv', sep=''))
+
+# names(graph.data.6)[names(graph.data.6) == "templated"] <- "Templated"
+# names(graph.data.6)[names(graph.data.6) == "group"] <- "Group"
+# names(graph.data.6)[names(graph.data.6) == "position"] <- "Position"
+# names(graph.data.6)[names(graph.data.6) == "type"] <- "Type"
+
+# grouped.graph.data.6 <- graph.data.6 %>% group_by(Group,Type) %>% group_data() 
+# grouped.graph.data.6 <- as.data.frame(grouped.graph.data.6)
+# graph.6 <- NULL
+
+# group.scaling <- length(unique(graph.data.6[, 'Group'])) / 2 
+# type.scaling <- length(unique(graph.data.6[, 'Position'])) / 10 
+
+# for (row in 1:nrow(grouped.graph.data.6)) {
+#   group.name = grouped.graph.data.6[row,'Group']
+#   type.name = grouped.graph.data.6[row,'Type']
+  
+#   indexes = unlist(grouped.graph.data.6[row,'.rows'])
+#   sub.graph.data.6 <- graph.data.6[indexes,]
+  
+#   sub.graph.data.6 <- sub.graph.data.6 %>%
+#     mutate(int.position = as.integer(Position)) 
+  
+#   max_position <- sub.graph.data.6 %>%
+#     filter(!is.na(int.position)) %>%
+#     group_by(int.position) %>%
+#     summarize(total_count = sum(count)) %>%
+#     filter(total_count > 0) %>%
+#     summarize(max_position = max(int.position)) %>%
+#     pull(max_position)
+
+#   sub.graph.data.6 <- sub.graph.data.6 %>% 
+#     filter(is.na(int.position) | int.position <= max_position)
+
+#   sub.graph.data.6$Position=factor(sub.graph.data.6$Position, levels = unique(sub.graph.data.6$Position))
+  
+#   if (is.null(graph.6)) {
+#     graph.6 <- ggplot(sub.graph.data.6, aes(fill=Templated, y=count, x=Position)) + 
+#       ggtitle(paste(group.name, type.name, "(unique tag)", sep=" ")) +
+#       geom_bar(position="stack", stat="identity") +
+#       xlab("Position") +
+#       ylab("Tag")+
+#       theme_bw() + 
+#       theme(plot.title = element_text(size = 12.5, face = "bold"), 
+#             legend.title = element_text(size = 10, face = "bold"), 
+#             legend.text = element_text(size = 9), 
+#             axis.text = element_text(size = 9), 
+#             axis.title = element_text(size = 10), 
+#             plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt")) 
+#   } else {
+#     graph.6 <- graph.6 + ggplot(sub.graph.data.6, aes(fill=Templated, y=count, x=Position)) + 
+#       ggtitle(paste(group.name, type.name, "(unique tag)", sep=" ")) +
+#       geom_bar(position="stack", stat="identity") +
+#       xlab("Position") +
+#       ylab("Tag")+
+#       theme_bw() + 
+#       theme(plot.title = element_text(size = 12.5, face = "bold"), 
+#             legend.title = element_text(size = 10, face = "bold"), 
+#             legend.text = element_text(size = 9), 
+#             axis.text = element_text(size = 9), 
+#             axis.title = element_text(size = 10), 
+#             plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt")) 
+#   }
+# }  
+# graph.6 <- graph.6 + 
+#   plot_layout(ncol = 2, guides = "collect") 
+# ggsave(file=paste(args[[1]], 'graph_6.pdf', sep=''), plot = graph.6, width = 10 * type.scaling, height = 10 * group.scaling, limitsize = FALSE)
+
+# Visualise graph 6 
 graph.data.6 <- read.csv(paste(args[[2]], 'graph_6_data.csv', sep=''))
 
 names(graph.data.6)[names(graph.data.6) == "templated"] <- "Templated"
 names(graph.data.6)[names(graph.data.6) == "group"] <- "Group"
 names(graph.data.6)[names(graph.data.6) == "position"] <- "Position"
-names(graph.data.6)[names(graph.data.6) == "type"] <- "Type"
 
-grouped.graph.data.6 <- graph.data.6 %>% group_by(Group,Type) %>% group_data() 
+grouped.graph.data.6 <- graph.data.6 %>% group_by(Group) %>% group_data() 
 grouped.graph.data.6 <- as.data.frame(grouped.graph.data.6)
 graph.6 <- NULL
 
@@ -324,7 +393,6 @@ type.scaling <- length(unique(graph.data.6[, 'Position'])) / 10
 
 for (row in 1:nrow(grouped.graph.data.6)) {
   group.name = grouped.graph.data.6[row,'Group']
-  type.name = grouped.graph.data.6[row,'Type']
   
   indexes = unlist(grouped.graph.data.6[row,'.rows'])
   sub.graph.data.6 <- graph.data.6[indexes,]
@@ -347,51 +415,34 @@ for (row in 1:nrow(grouped.graph.data.6)) {
   
   if (is.null(graph.6)) {
     graph.6 <- ggplot(sub.graph.data.6, aes(fill=Templated, y=count, x=Position)) + 
-      ggtitle(paste(group.name, type.name, "(unique tag)", sep=" ")) +
+      ggtitle(paste(group.name, "(unique tag)", sep=" ")) +
       geom_bar(position="stack", stat="identity") +
       xlab("Position") +
       ylab("Tag")+
       theme_bw() + 
-      theme(plot.title = element_text(size = 12.5, face = "bold"), 
-            legend.title = element_text(size = 10, face = "bold"), 
-            legend.text = element_text(size = 9), 
-            axis.text = element_text(size = 9), 
-            axis.title = element_text(size = 10), 
+      theme(plot.title = element_text(size = 12.5*2, face = "bold"), 
+            legend.title = element_text(size = 10*2, face = "bold"), 
+            legend.text = element_text(size = 9*2), 
+            axis.text = element_text(size = 9*2), 
+            axis.title = element_text(size = 10*2), 
             plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt")) 
   } else {
     graph.6 <- graph.6 + ggplot(sub.graph.data.6, aes(fill=Templated, y=count, x=Position)) + 
-      ggtitle(paste(group.name, type.name, "(unique tag)", sep=" ")) +
+      ggtitle(paste(group.name, "(unique tag)", sep=" ")) +
       geom_bar(position="stack", stat="identity") +
       xlab("Position") +
       ylab("Tag")+
       theme_bw() + 
-      theme(plot.title = element_text(size = 12.5, face = "bold"), 
-            legend.title = element_text(size = 10, face = "bold"), 
-            legend.text = element_text(size = 9), 
-            axis.text = element_text(size = 9), 
-            axis.title = element_text(size = 10), 
+      theme(plot.title = element_text(size = 12.5*2, face = "bold"), 
+            legend.title = element_text(size = 10*2, face = "bold"), 
+            legend.text = element_text(size = 9*2), 
+            axis.text = element_text(size = 9*2), 
+            axis.title = element_text(size = 10*2), 
             plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt")) 
   }
 }  
 graph.6 <- graph.6 + 
-  plot_layout(ncol = 2, guides = "collect") 
+  plot_layout(ncol = 1, guides = "collect") 
 ggsave(file=paste(args[[1]], 'graph_6.pdf', sep=''), plot = graph.6, width = 10 * type.scaling, height = 10 * group.scaling, limitsize = FALSE)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

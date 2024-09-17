@@ -172,6 +172,77 @@ def summarise_templated_alignment(path_templated_alignment_file, path_summarised
         templated_summary.loc[len(templated_summary.index)] = [col, 'Nontemplated', untemplated_value]
     templated_summary.to_csv(path_summarised_templated_alignment_file, index = False)
 
+# Deprecated code
+# def summarise_templated_alignment_all(path_templated_alignment_file, path_summarised_templated_alignment_all_file, max_nt_diff_5p):
+#     """Calculate the templated / nontemplated frequency at all positions and save to the summarised templated alignment file. 
+
+#     Parameters
+#     ----------
+#     path_templated_alignment_file : str 
+#         Path to templated alignment file. 
+#     path_summarised_templated_alignment_all_file : str
+#         Path to summarised templated alignment for (all positions) file. 
+#     max_nt_diff_5p : str
+#         The maximum number of nucleotide difference at 5' end across all isomiRs.
+
+#     Example
+#     -------
+#     ```
+#     sja-bantam,   UGAGAUCGCGAUUAAAGCUGGUC       ,False,extended,,,,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,-,,,,,,,,,,
+#     sja-bantam,   UGAGAUCGCGAUUAAAGCUGGUAAU     ,False,extended,,,,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,-,-,+,,,,,,,,
+#     sja-miR-1,   UGGAAUGUGGCGAAGUAUGGUCA       ,False,extended,,,,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,-,,,,,,,,,,
+#     sja-miR-1,   UGAAAUGUGGCGAAGUAUGGUCU       ,False,extended,,,,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,,,,,,,,,,
+
+#     Output : 
+#     type     | position | templated   | value
+#     extended | 5'e1     |  Templated  |     0
+#     extended | 5'e1     |Nontemplated |     0      
+#     extended | 5'e2     |  Templated  |     0
+#     extended | 5'e2     |Nontemplated |     0
+#     extended | 1        |  Templated  |     4
+#     extended | 1        |Nontemplated |     0
+#     ....     |     ...  |   ...
+#     extended | 23       |  Templated  |     1
+#     extended | 23       |Nontemplated |     3
+#     ....     |     ...  |   ...
+#     ```
+
+#     Returns 
+#     -------
+#     None. A summarised templated alignment file that stores the templated / nontemplated frequency at all positions is generated. 
+#     """
+#     # Read the templated alignment file 
+#     templated_alignment = pd.read_csv(path_templated_alignment_file)
+#     # Remove precursor rows 
+#     templated_alignment = templated_alignment[templated_alignment['is_pre'] == False]
+#     # Retain extended or truncated isomiRs 
+#     templated_alignment = templated_alignment[templated_alignment['extended_or_truncated'].isin(['extended', 'truncated'])]
+#     # Create a dataframe that stores the templated / nontemplated frequency at all positions
+#     templated_summary = pd.DataFrame(columns=['type', 'position', 'templated', 'value'])
+#     # Group by extended / truncated 
+#     grouped_extended_or_truncated = templated_alignment.groupby('extended_or_truncated')
+#     # Position columns 
+#     cols = list(templated_alignment.columns)
+#     del cols[0:4]
+#     for extended_or_truncated, extended_or_truncated_group in grouped_extended_or_truncated:
+#         # Loop through each position 
+#         for col in cols: 
+#             freq_counts = Counter(list(extended_or_truncated_group[col]))
+#             templated_value = freq_counts['+'] if '+' in freq_counts else 0
+#             untemplated_value = freq_counts['-'] if '-' in freq_counts else 0
+#             col = int(col)
+#             if extended_or_truncated == 'extended':
+#                 col = f"5'e{max_nt_diff_5p - col + 1}" if col <= max_nt_diff_5p else col - max_nt_diff_5p
+#             else: 
+#                 if col <= max_nt_diff_5p:
+#                     continue
+#                 else: 
+#                     col = col - max_nt_diff_5p
+                
+#             templated_summary.loc[len(templated_summary.index)] = [extended_or_truncated, col, 'Templated', templated_value]
+#             templated_summary.loc[len(templated_summary.index)] = [extended_or_truncated, col, 'Nontemplated', untemplated_value]
+#     templated_summary.to_csv(path_summarised_templated_alignment_all_file, index = False)
+
 def summarise_templated_alignment_all(path_templated_alignment_file, path_summarised_templated_alignment_all_file, max_nt_diff_5p):
     """Calculate the templated / nontemplated frequency at all positions and save to the summarised templated alignment file. 
 
@@ -193,17 +264,17 @@ def summarise_templated_alignment_all(path_templated_alignment_file, path_summar
     sja-miR-1,   UGAAAUGUGGCGAAGUAUGGUCU       ,False,extended,,,,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,,,,,,,,,,
 
     Output : 
-    type     | position | templated   | value
-    extended | 5'e1     |  Templated  |     0
-    extended | 5'e1     |Nontemplated |     0      
-    extended | 5'e2     |  Templated  |     0
-    extended | 5'e2     |Nontemplated |     0
-    extended | 1        |  Templated  |     4
-    extended | 1        |Nontemplated |     0
-    ....     |     ...  |   ...
-    extended | 23       |  Templated  |     1
-    extended | 23       |Nontemplated |     3
-    ....     |     ...  |   ...
+    position | templated   | value
+    5'e1     |  Templated  |     0
+    5'e1     |Nontemplated |     0      
+    5'e2     |  Templated  |     0
+    5'e2     |Nontemplated |     0
+    1        |  Templated  |     4
+    1        |Nontemplated |     0
+    ....     |     ...     |   ...
+    23       |  Templated  |     1
+    23       |Nontemplated |     3
+    ....     |     ...     |   ...
     ```
 
     Returns 
@@ -214,34 +285,23 @@ def summarise_templated_alignment_all(path_templated_alignment_file, path_summar
     templated_alignment = pd.read_csv(path_templated_alignment_file)
     # Remove precursor rows 
     templated_alignment = templated_alignment[templated_alignment['is_pre'] == False]
-    # Retain extended or truncated isomiRs 
-    templated_alignment = templated_alignment[templated_alignment['extended_or_truncated'].isin(['extended', 'truncated'])]
     # Create a dataframe that stores the templated / nontemplated frequency at all positions
-    templated_summary = pd.DataFrame(columns=['type', 'position', 'templated', 'value'])
-    # Group by extended / truncated 
-    grouped_extended_or_truncated = templated_alignment.groupby('extended_or_truncated')
+    templated_summary = pd.DataFrame(columns=['position', 'templated', 'value'])
     # Position columns 
     cols = list(templated_alignment.columns)
     del cols[0:4]
-    for extended_or_truncated, extended_or_truncated_group in grouped_extended_or_truncated:
-        # Loop through each position 
-        for col in cols: 
-            freq_counts = Counter(list(extended_or_truncated_group[col]))
-            templated_value = freq_counts['+'] if '+' in freq_counts else 0
-            untemplated_value = freq_counts['-'] if '-' in freq_counts else 0
-            col = int(col)
-            if extended_or_truncated == 'extended':
-                col = f"5'e{max_nt_diff_5p - col + 1}" if col <= max_nt_diff_5p else col - max_nt_diff_5p
-            else: 
-                if col <= max_nt_diff_5p:
-                    continue
-                else: 
-                    col = col - max_nt_diff_5p
-                
-            templated_summary.loc[len(templated_summary.index)] = [extended_or_truncated, col, 'Templated', templated_value]
-            templated_summary.loc[len(templated_summary.index)] = [extended_or_truncated, col, 'Nontemplated', untemplated_value]
-    templated_summary.to_csv(path_summarised_templated_alignment_all_file, index = False)
 
+    # Loop through each position 
+    for col in cols: 
+        freq_counts = Counter(list(templated_alignment[col]))
+        templated_value = freq_counts['+'] if '+' in freq_counts else 0
+        untemplated_value = freq_counts['-'] if '-' in freq_counts else 0
+        col = int(col)
+        col = f"5'e{max_nt_diff_5p - col + 1}" if col <= max_nt_diff_5p else col - max_nt_diff_5p
+        templated_summary.loc[len(templated_summary.index)] = [col, 'Templated', templated_value]
+        templated_summary.loc[len(templated_summary.index)] = [col, 'Nontemplated', untemplated_value]
+    templated_summary.to_csv(path_summarised_templated_alignment_all_file, index = False)
+   
 # Path to nt alignment output files 
 path_nt_alignment_output_folder = sys.argv[1]
 # Path to templated alignment output files 
