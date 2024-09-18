@@ -26,8 +26,15 @@ The outputs:
 
 ## Install dependencies
 
-Python: requests, pandas.
-R: ggplot2, patchwork, dplyr, ggrepel.
+1. pandas
+
+```
+pip install pandas
+```
+
+2. ggplot2, patchwork, dplyr, ggrepel, tidyr (just uncomment the first line of code in 9_visualise.R to install, then comment again once the installation is done)
+
+3. bedtools [install here](https://bedtools.readthedocs.io/en/latest/content/installation.html)
 
 ## Run the program
 
