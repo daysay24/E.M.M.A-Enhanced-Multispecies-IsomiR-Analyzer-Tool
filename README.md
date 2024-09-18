@@ -14,15 +14,17 @@ The outputs:
 
 - A set of visualisations that provide insights into the isomiR data:
 
-  Graph 1: RPM and relative abundance of isomiRs vs miRNAs in different groups.
+  Graph 1: RPM and relative abundance of isomiRs vs miRNAs in different groups, with a canonical:isomiR ratio for each group
 
-  Graph 2: RPM and unique tags of isomiR types (3p, 5p, both, canonical, others) in different groups.
+  Graph 2: RPM and unique tags of isomiR types (3`end, 5`end, both ends, canonical and others) in different groups.
 
   Graph 3: RPM and unique tags of isomiR types (addition/truncation + nt) in different groups.
 
   Graph 4: Proportion of templated vs nontemplated at addition positions in different groups.
 
   Graph 5: Proportion of nucleotides (A, U, C, G) at addition positions in different groups.
+
+  Graph 9: Proportion of templated vs nontemplated at all positions for all isomiRs in different groups.
 
 ## Install dependencies
 
@@ -65,6 +67,8 @@ pip install pandas
 
     - Genome sequence: A fasta file from users.
     - miRNA annotation: (1) gff file from miRBase or (2) an excel file from users which must have _chr_, _name_, _start_, _end_, _strand_ columns.
+  
+    If using a gff file from miRBase ensure that the fasta file with genomic sequences is the same genome file used for miRNA annotation; specific genomes used for annotation can be found     on miRBase. 
 
     Hence, there are two possible cases. We provided sample files for both cases (for 2nd case, download genome fasta for Schistosoma japonicum [here](https://parasite.wormbase.org/Schistosoma_japonicum_prjea34885/Info/Index), rename to _s.jap.fa_, save into ./test/s.jap/). Here are detailed setting up steps for each case:
 
@@ -81,7 +85,7 @@ pip install pandas
             /mmu.gff3
       ```
 
-    - Modify /run.sh.
+    - Modify /run.sh file.
 
       For example:
 
