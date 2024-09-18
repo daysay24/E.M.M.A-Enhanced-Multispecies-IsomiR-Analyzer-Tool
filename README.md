@@ -14,15 +14,17 @@ The outputs:
 
 - A set of visualisations that provide insights into the isomiR data:
 
-  Graph 1: RPM and relative abundance of isomiRs vs miRNAs in different groups.
+  Graph 1: RPM and relative abundance of isomiRs vs miRNAs in different groups, with a canonical:isomiR ratio for each group
 
-  Graph 2: RPM and unique tags of isomiR types (3p, 5p, both, canonical, others) in different groups.
+  Graph 2: RPM and unique tags of isomiR types (3`end, 5`end, both ends, canonical and others) in different groups.
 
   Graph 3: RPM and unique tags of isomiR types (addition/truncation + nt) in different groups.
 
   Graph 4: Proportion of templated vs nontemplated at addition positions in different groups.
 
   Graph 5: Proportion of nucleotides (A, U, C, G) at addition positions in different groups.
+
+  Graph 9: Proportion of templated vs nontemplated at all positions for all isomiRs in different groups.
 
 ## Install dependencies
 
@@ -74,7 +76,7 @@ R: ggplot2, patchwork, dplyr, ggrepel.
             /mmu.gff3
       ```
 
-    - Modify /run.sh.
+    - Modify /run.sh file.
 
       For example:
 
