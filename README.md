@@ -60,6 +60,8 @@ R: ggplot2, patchwork, dplyr, ggrepel.
 
     - Genome sequence: A fasta file from users.
     - miRNA annotation: (1) gff file from miRBase or (2) an excel file from users which must have _chr_, _name_, _start_, _end_, _strand_ columns.
+  
+    If using a gff file from miRBase ensure that the fasta file with genomic sequences is the same genome file used for miRNA annotation; specific genomes used for annotation can be found     on miRBase. 
 
     Hence, there are two possible cases. We provided sample files for both cases (for 2nd case, download genome fasta for Schistosoma japonicum [here](https://parasite.wormbase.org/Schistosoma_japonicum_prjea34885/Info/Index), rename to _s.jap.fa_, save into ./test/s.jap/). Here are detailed setting up steps for each case:
 
