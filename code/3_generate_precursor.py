@@ -131,6 +131,7 @@ def get_extended_miRNA_coordinates(is_mirbase_gff, match_chr_names, max_nt_diff_
 
     """
     chr_names = []
+    genomic_coordinates = pd.DataFrame()
 
     if is_mirbase_gff == True: 
         for line in fileinput.input(path_coords_file, inplace = 1):
@@ -145,16 +146,15 @@ def get_extended_miRNA_coordinates(is_mirbase_gff, match_chr_names, max_nt_diff_
     else:
         genomic_coordinates = pd.read_excel(path_coords_file)
 
-    # Extract chr names 
-    genomic_coordinates['chr'] = genomic_coordinates['chr'].str.lower()
-    chr_names = list(genomic_coordinates['chr'].unique())
-
+    # Match chr names in genomic coordinate file with those in genome fasta file 
+    if match_chr_names:
+        genomic_coordinates['chr'] = genomic_coordinates['chr'].astype(str)
+        genomic_coordinates['chr'] = genomic_coordinates['chr'].str.lower()        
+        chr_names = list(genomic_coordinates['chr'].unique())
+        match_chromosomes(path_genomic_file, chr_names)
+    
     # Create a bed file that stores coordinates of extended precursors 
     create_bed_coordinates(genomic_coordinates, max_nt_diff_5p, max_nt_diff_3p, path_precursors_output_folder)   
-
-    # Match chr names in genomic coordinate file with genome fasta file 
-    if match_chr_names:
-        match_chromosomes(path_genomic_file, chr_names)
 
     abs_path_to_genome_file = os.path.abspath(path_genomic_file)
     abs_path_to_extended_coords_bed_file = os.path.abspath(f'{path_precursors_output_folder}/extended_precursor_coords.bed') 
