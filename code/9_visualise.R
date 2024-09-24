@@ -29,11 +29,12 @@ for (row in 1:nrow(graph.data.ratio.1)) {
   x.labels.1 <- append(x.labels.1, paste(r['group'], paste("1", round(r['ratio'], digits=2), sep=":"), sep="\n"))
 }
 graph.data.1$group <- factor(graph.data.1$group, levels = unique(graph.data.ratio.1$group))
+group.scaling <- length(unique(graph.data.1[, 'group'])) / 2
 
 graph.1 <- ggplot(data = graph.data.1, aes(x = group, y = rpm, group = Type, color = Type)) +
   geom_line() + 
   geom_point() + 
-  scale_x_discrete(labels=x.labels.1) + 
+  scale_x_discrete(labels=x.labels.1, guide = guide_axis(angle=45)) + 
   xlab("Group\nCanonical:IsomiR ratio") +
   theme_bw()+
   theme(legend.title = element_text(size = 10, face = "bold"), 
@@ -44,6 +45,7 @@ graph.1 <- ggplot(data = graph.data.1, aes(x = group, y = rpm, group = Type, col
 graph.1 <- graph.1 + ggplot(data = graph.data.1, aes(x = group, y = relative_abundance, group = Type, color = Type)) +
   geom_line() + 
   geom_point() + 
+  scale_x_discrete(guide = guide_axis(angle=45)) + 
   ylab("%") +
   xlab("Group") +
   theme_bw() +
@@ -54,7 +56,7 @@ graph.1 <- graph.1 + ggplot(data = graph.data.1, aes(x = group, y = relative_abu
         plot.margin = unit(c(8.5,8.5,8.5,8.5), "pt"))
 graph.1 <- graph.1 + 
   plot_layout(ncol = 2, guides = "collect") 
-ggsave(file=paste(args[[1]], 'graph_1.pdf', sep=''), plot = graph.1, height = 5, width = 10)
+ggsave(file=paste(args[[1]], 'graph_1.pdf', sep=''), plot = graph.1, height = 5, width = group.scaling * 6, limitsize=FALSE)
 
 # Visualise graph 2
 graph.data.2 <- read.csv(paste(args[[2]], 'graph_2_data.csv', sep=''))
@@ -106,7 +108,7 @@ for (row in 1:nrow(grouped.graph.data.2)) {
 }
 graph.2 <- graph.2 + 
   plot_layout(ncol = 2, guides = "collect")
-ggsave(file=paste(args[[1]], 'graph_2.pdf', sep=''), plot = graph.2, width = 10, height = 10 * group.scaling)
+ggsave(file=paste(args[[1]], 'graph_2.pdf', sep=''), plot = graph.2, width = 10, height = 10 * group.scaling, limitsize=FALSE)
 
 # Visualise graph 3
 graph.data.3 <- read.csv(paste(args[[2]], 'graph_3_data.csv', sep=''))

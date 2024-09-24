@@ -4,7 +4,7 @@ import os
 import sys
 
 def get_extension_values(r, max_nt_diff_5p, max_nt_diff_3p):
-    """Get the matching symbol or nucleotide at extension positions (5e1, 5e2, 5e3, ..., 3e1, 3e2, 3e3e,...) for each isomiR.
+    """Get the matching symbol or nucleotide at extension positions (5'+1, 5'+2, 5'+3, ..., 3'+1, 3'+2, 3'+3,...) for each isomiR.
 
     Parameters
     ----------
@@ -23,12 +23,12 @@ def get_extension_values(r, max_nt_diff_5p, max_nt_diff_3p):
     r (nt alignment) : sja-bantam,   UGAGAUCGCGAUUAAAGCUGGU        ,False,,,,,u,g,a,g,a,u,c,g,c,g,a,u,u,a,a,a,g,c,u,g,g,u,,,,,,,,,,,
     max_nt_diff_5p : 3
     max_nt_diff_3p : 8
-    Output (for nt alignment file) : ['a','g','u','a','a','g','c','u','g','g','u'] - the nucleotides at 5e1,5e2,5e3,3e1,3e2,3e3,3e4,3e5,3e6,3e7,3e8.
+    Output (for nt alignment file) : ['a','g','u','a','a','g','c','u','g','g','u'] - the nucleotides at 5'+1,5'+2,5'+3,3'+1,3'+2,3'+3,3'+4,3'+5,3'+6,3'+7,3'+8.
 
     r (templated alignment) : sja-bantam,   UGGGAUCGCGAUUAAAGCUGGA        ,False,,,,,+,+,-,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,+,-,,,,,,,,,,,
     max_nt_diff_5p : 3
     max_nt_diff_3p : 8
-    Output (for templated alignment file) : ['-','+','+','+','+','+','+','+','+','+','-'] - the matching symbols at 5e1,5e2,5e3,3e1,3e2,3e3,3e4,3e5,3e6,3e7,3e8.
+    Output (for templated alignment file) : ['-','+','+','+','+','+','+','+','+','+','-'] - the matching symbols at 5'+1,5'+2,5'+3,3'+1,3'+2,3'+3,3'+4,3'+5,3'+6,3'+7,3'+8.
     ```
     
     Returns
@@ -61,7 +61,7 @@ def summarise_nt_alignment(path_nt_alignment_file, path_summarised_nt_alignment_
     Example
     ----------- 
     ```
-    Extension positions : 5e1, 5e2, 5e3, 3e1, 3e2, 3e3, 3e4, 3e5, 3e6, 3e7, 3e8.
+    Extension positions : 5'+1, 5'+2, 5'+3, 3'+1, 3'+2, 3'+3, 3'+4, 3'+5, 3'+6, 3'+7, 3'+8.
     sja-bantam :    u,g,g,u,g,u,a,c,g,c,a
     sja-bantam :    a,g,a,u,c,a,u,c,g,a,a
     sja-miR-10-3p : a,u,u,c,g,a,g,c,g,c,g
@@ -70,14 +70,14 @@ def summarise_nt_alignment(path_nt_alignment_file, path_summarised_nt_alignment_
 
     Output :
     position | nucleotide | value
-    5'e1     |          a |     2
-    5'e1     |          u |     2        
-    5'e1     |          c |     0
-    5'e1     |          g |     0
-    5'e2     |          a |     0
-    5'e2     |          u |     1
-    5'e2     |          c |     0
-    5'e2     |          g |     3
+    5'+1     |          a |     2
+    5'+1     |          u |     2        
+    5'+1     |          c |     0
+    5'+1     |          g |     0
+    5'+2     |          a |     0
+    5'+2     |          u |     1
+    5'+2     |          c |     0
+    5'+2     |          g |     3
     ....     |        ... |   ...
     ```
 
@@ -89,9 +89,9 @@ def summarise_nt_alignment(path_nt_alignment_file, path_summarised_nt_alignment_
     nt_alignment = pd.read_csv(path_nt_alignment_file)
 
     # Create a list of columns for extension positions at 5p
-    extension_5p_cols = [ f"5'e{i + 1}" for i in range(max_nt_diff_5p)]
+    extension_5p_cols = [ f"5'+{i + 1}" for i in range(max_nt_diff_5p)]
     # Create a list of columns for extension positions at 3p
-    extension_3p_cols = [ f"3'e{i + 1}" for i in range(max_nt_diff_3p)]
+    extension_3p_cols = [ f"3'+{i + 1}" for i in range(max_nt_diff_3p)]
     # Combine 5 extension cols and 3 extension cols
     extension_cols = extension_5p_cols + extension_3p_cols
 
@@ -125,7 +125,7 @@ def summarise_templated_alignment(path_templated_alignment_file, path_summarised
     Example
     ------- 
     ```
-    Extension positions : 5e1, 5e2, 5e3, 3e1, 3e2, 3e3, 3e4, 3e5, 3e6, 3e7, 3e8.
+    Extension positions : 5'+1, 5'+2, 5'+3, 3'+1, 3'+2, 3'+3, 3'+4, 3'+5, 3'+6, 3'+7, 3'+8.
     sja-bantam :     +,+,+,+,+,+,+,-,+,-,+
     sja-bantam :     -,-,+,+,+,+,+,+,+,-,-
     sja-miR-10-3p :  +,+,+,-,-,-,+,-,+,+,-
@@ -134,14 +134,14 @@ def summarise_templated_alignment(path_templated_alignment_file, path_summarised
 
     Output :
     position | templated   | value
-    5'e1     |  Templated  |     2
-    5'e1     |Nontemplated |     2        
-    5'e2     |  Templated  |     3
-    5'e2     |Nontemplated |     1
-    5'e3     |  Templated  |     4
-    5'e3     |Nontemplated |     0
-    3'e1     |  Templated  |     3
-    3'e2     |Nontemplated |     1
+    5'+1     |  Templated  |     2
+    5'+1     |Nontemplated |     2        
+    5'+2     |  Templated  |     3
+    5'+2     |Nontemplated |     1
+    5'+3     |  Templated  |     4
+    5'+3     |Nontemplated |     0
+    3'+1     |  Templated  |     3
+    3'+2     |Nontemplated |     1
     ....     |        ...  |   ...
     ```
 
@@ -152,9 +152,9 @@ def summarise_templated_alignment(path_templated_alignment_file, path_summarised
     # Read the templated alignment file 
     templated_alignment = pd.read_csv(path_templated_alignment_file)
     # Create a list of columns for extension positions at 5p
-    extension_5p_cols = [ f"5'e{i + 1}" for i in range(max_nt_diff_5p)]
+    extension_5p_cols = [ f"5'+{i + 1}" for i in range(max_nt_diff_5p)]
     # Create a list of columns for extension positions at 3p
-    extension_3p_cols = [ f"3'e{i + 1}" for i in range(max_nt_diff_3p)]
+    extension_3p_cols = [ f"3'+{i + 1}" for i in range(max_nt_diff_3p)]
     # Combine 5 extension cols and 3 extension cols
     extension_cols = extension_5p_cols + extension_3p_cols
 
@@ -265,10 +265,10 @@ def summarise_templated_alignment_all(path_templated_alignment_file, path_summar
 
     Output : 
     position | templated   | value
-    5'e1     |  Templated  |     0
-    5'e1     |Nontemplated |     0      
-    5'e2     |  Templated  |     0
-    5'e2     |Nontemplated |     0
+    5'+1     |  Templated  |     0
+    5'+1     |Nontemplated |     0      
+    5'+2     |  Templated  |     0
+    5'+2     |Nontemplated |     0
     1        |  Templated  |     4
     1        |Nontemplated |     0
     ....     |     ...     |   ...
@@ -297,7 +297,7 @@ def summarise_templated_alignment_all(path_templated_alignment_file, path_summar
         templated_value = freq_counts['+'] if '+' in freq_counts else 0
         untemplated_value = freq_counts['-'] if '-' in freq_counts else 0
         col = int(col)
-        col = f"5'e{max_nt_diff_5p - col + 1}" if col <= max_nt_diff_5p else col - max_nt_diff_5p
+        col = f"5'+{max_nt_diff_5p - col + 1}" if col <= max_nt_diff_5p else col - max_nt_diff_5p
         templated_summary.loc[len(templated_summary.index)] = [col, 'Templated', templated_value]
         templated_summary.loc[len(templated_summary.index)] = [col, 'Nontemplated', untemplated_value]
     templated_summary.to_csv(path_summarised_templated_alignment_all_file, index = False)

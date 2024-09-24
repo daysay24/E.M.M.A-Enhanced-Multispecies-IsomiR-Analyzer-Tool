@@ -55,7 +55,7 @@ def get_type_nt(type: str, nt_diff_5p: int, nt_diff_3p: int):
             side, nt = 5, nt_diff_5p
         else: 
             side, nt = 3, nt_diff_3p 
-        type_nt = f"{side}'t{nt}" if nt < 0 else f"{side}'e{nt}"
+        type_nt = f"{side}'{nt}" if nt < 0 else f"{side}'+{nt}"
         return type_nt
     else: 
         return ''
