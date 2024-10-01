@@ -34,7 +34,7 @@ path_graph_processed_data_folder=./output/8_graph_processed_data/
 path_graphs_folder=./output/graphs/
 
 # Summarise isomiRs 
-read_count_threshold=10
+read_count_threshold=10 # change this if necessary
 python ./code/1_summarise_isomiR_SEA.py $path_raw_output_folder $path_summarised_output_folder $read_count_threshold
 
 # Average rep isomiRs 
