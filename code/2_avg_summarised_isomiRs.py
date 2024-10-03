@@ -11,7 +11,7 @@ def get_grouped_type(type: str):
         Variant type of an isomiR. 
         - 'iso_3p_only' -> 3'isomiR
         - 'iso_5p_only' -> 5'isomiR
-        - 'iso_5p-iso_snp-iso_3p', 'iso_5p-iso_multi_snp-iso_3p', 'iso_5p-iso_3p' -> 'Both end isomiR'
+        - 'iso_5p-iso_3p' -> 'Both end isomiR'
         - 'mirna_exact' -> Canonical
         - The rest -> Others
     Returns
@@ -24,7 +24,7 @@ def get_grouped_type(type: str):
         return "3'isomiR"
     elif type == 'iso_5p_only':
         return "5'isomiR"
-    elif type in ['iso_5p-iso_snp-iso_3p', 'iso_5p-iso_multi_snp-iso_3p', 'iso_5p-iso_3p']:
+    elif type == 'iso_5p-iso_3p':
         return 'Both end isomiR'
     elif type == 'mirna_exact':
         return 'Canonical'
@@ -32,7 +32,7 @@ def get_grouped_type(type: str):
         return 'Others'
 
 def get_type_nt(type: str, nt_diff_5p: int, nt_diff_3p: int):
-    """Get the combination of variant type and the number of nucleotide differences of an iso_5p_only or iso_3p_only isomiR. 
+    """Get the combination of variant type and the number of nucleotide differences of an iso_3p_only/iso_5p_only/iso_5p-iso_snp/iso_5p-iso_multi_snp/iso_snp-iso_3p/iso_multi_snp-iso_3p isomiR. 
     
     Paramaters
     ----------
@@ -49,7 +49,7 @@ def get_type_nt(type: str, nt_diff_5p: int, nt_diff_3p: int):
         The combination of variant type and the number of nucleotide differences of an isomiR.
 
     """
-    if type in ['iso_3p_only', 'iso_5p_only']:
+    if type in ['iso_3p_only', 'iso_5p_only', 'iso_5p-iso_snp', 'iso_5p-iso_multi_snp', 'iso_snp-iso_3p', 'iso_multi_snp-iso_3p']:
         side, nt = '', ''
         if nt_diff_5p != 0:  
             side, nt = 5, nt_diff_5p
