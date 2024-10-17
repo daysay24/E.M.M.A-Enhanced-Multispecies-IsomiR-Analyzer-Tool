@@ -181,6 +181,6 @@ for group in group_folders:
     for rep_file in rep_files:
         # Read summarised isomiR-SEA output file of that replicate
         isomiR_SEA_output = pd.read_csv(f'{path_summarised_output_folder}/{group}/{rep_file}')
-        # Keep tag sequences having read counts > 10 
+        # Keep tag sequences having total read counts >= read_count_threshold 
         isomiR_SEA_output = isomiR_SEA_output[isomiR_SEA_output['tag_sequence'].isin(kept_tag_sequences)]
         isomiR_SEA_output.to_csv(f'{path_summarised_output_folder}/{group}/{rep_file}', index=False)

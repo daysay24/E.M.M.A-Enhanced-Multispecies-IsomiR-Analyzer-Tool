@@ -44,12 +44,12 @@ def match_letters(pre_seq, aligned_isomiR_seq):
     
     At each position of an isomiR: 
     - The nucleotide of the isomiR is the same as that of the extended precursor sequence, matching symbol is +.
-    - The nucleotide of the isomiR is the same as that of the extended precursor sequence, matching symbol is -.
+    - The nucleotide of the isomiR is different from that of the extended precursor sequence, matching symbol is -.
     
     Parameters
     ----------
     pre_seq : str
-        The extended precursor sequence of a miRNA, which is extracted by adding max_nt_diff_5p and max_nt_diff_3p nucleotids to 5' and 3' ends of that miRNA. 
+        The extended precursor sequence of a miRNA, which is extracted by adding max_nt_diff_5p and max_nt_diff_3p nucleotides to 5' and 3' ends of that miRNA. 
     aligned_isomiR_seq : str
         The output of align_isomiR_to_pre_miRNA().
 
