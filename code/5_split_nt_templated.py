@@ -50,6 +50,8 @@ def split_nt_templated(input_file, output_file, type):
                         templated_nt.loc[index, col] = first_val  
     templated_nt.to_csv(output_file, index=False)
 
+print("Running 5_split_nt_templated.py script...")
+
 # Path to nt and templated alignment output files 
 path_nt_templated_alignment_output_folder = sys.argv[1]
 # Path to nt alignment output files 

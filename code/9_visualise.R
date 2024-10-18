@@ -1,12 +1,15 @@
 # install packages (uncommnet if you need to install)
 # install.packages(c('ggplot2', 'patchwork', 'dplyr', 'ggrepel', 'tidyr'))
 
+message("Running 9_visualise.R script...")
+
 # Import libraries
 library(ggplot2)
 library(patchwork)
 library(dplyr)
 library(ggrepel)
 library(tidyr)
+options(warn=-1)
 
 # Passed arguments
 args <- commandArgs(trailingOnly = TRUE)
@@ -451,4 +454,5 @@ graph.6 <- graph.6 +
   plot_layout(ncol = 1, guides = "collect") 
 ggsave(file=paste(args[[1]], 'graph_6.pdf', sep=''), plot = graph.6, width = 10 * type.scaling, height = 10 * group.scaling, limitsize = FALSE)
 
-
+message("================================================")
+message("Done.")

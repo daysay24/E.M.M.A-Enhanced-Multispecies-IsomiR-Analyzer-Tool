@@ -302,6 +302,8 @@ def summarise_templated_alignment_all(path_templated_alignment_file, path_summar
         templated_summary.loc[len(templated_summary.index)] = [col, 'Nontemplated', untemplated_value]
     templated_summary.to_csv(path_summarised_templated_alignment_all_file, index = False)
    
+print("Running 6_summarise_nt_templated.py script...")
+
 # Path to nt alignment output files 
 path_nt_alignment_output_folder = sys.argv[1]
 # Path to templated alignment output files 

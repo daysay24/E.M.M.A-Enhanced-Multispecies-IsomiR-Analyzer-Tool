@@ -10,6 +10,8 @@ def get_avg(r, rep_cols):
 
     return total_count / len(rep_cols)
 
+print("Running 7_avg_nt_templated.py script...")
+
 # Path to summarised nt alignment output files 
 path_summarised_nt_alignment_output_folder = sys.argv[1]
 # Path to summarised templated alignment output files 

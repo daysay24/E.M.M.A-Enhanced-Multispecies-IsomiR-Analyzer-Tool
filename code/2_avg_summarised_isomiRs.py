@@ -87,6 +87,8 @@ def get_avg(r: pd.Series, rep_cols: set):
 
     return pd.Series([total_rpm / n_reps, total_unique_tag / n_reps])     
 
+print("Running 2_avg_summarised_isomiRs.py script...")
+
 # Path to all summarised isomiR files 
 path_summarised_output_folder = sys.argv[1]
 # Path to the average rpm/unique tag isomiR files 

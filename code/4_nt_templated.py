@@ -111,6 +111,8 @@ def extended_or_truncated(nt_5p_diff, nt_3p_diff):
     else: 
         return ''
 
+print("Running 4_nt_templated.py script...")
+
 # Path to all summarised isomiR files 
 path_summarised_output_folder = sys.argv[1]
 # Path to extended precursor sequences file 

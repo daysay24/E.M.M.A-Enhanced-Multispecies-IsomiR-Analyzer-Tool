@@ -183,6 +183,8 @@ def get_extended_miRNA_coordinates(is_mirbase_gff, match_chr_names, max_nt_diff_
             extended_precursor_seqs.append(extended_precursor_seq)
     pd.DataFrame({'mir_name': mir_names, 'extended_precursor_seq': extended_precursor_seqs}).to_csv(f'{path_precursors_output_folder}/{max_nt_diff_5p}_{max_nt_diff_3p}_extended_precursor_seqs.csv', index=False)
 
+print("Running 3_generate_precursor.py script...")
+
 # Path to the summarised outputs folder 
 path_summarised_output_folder = sys.argv[1]
 # Path to the precursor folder 

@@ -124,6 +124,8 @@ def add_columns(row: pd.Series):
 
     return pd.Series([nt_diff_5p, nt_snp, nt_diff_3p, type, name])
 
+print("Running 1_summarise_isomiR_SEA.py script...")
+
 # Path to the raw isomiR outputs folder 
 path_raw_output_folder = sys.argv[1]
 # Path to the summarised isomiR outputs folder

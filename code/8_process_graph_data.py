@@ -1,6 +1,9 @@
 import pandas as pd 
 import os
 import sys
+import warnings
+warnings.filterwarnings('ignore')
+
 # Graph 1: Summarise data for showing miRNAs and isomiRs total reads (rpm) and relative abundance as percentage of total reads. 
 def process_graph1_data():
     # All groups df
@@ -157,6 +160,8 @@ def process_graph6_data():
 
 if not os.path.exists(sys.argv[5]):
     os.makedirs(sys.argv[5])
+
+print("Running 8_process_graph_data.py script...")
 
 process_graph1_data()
 process_graph2_data()
