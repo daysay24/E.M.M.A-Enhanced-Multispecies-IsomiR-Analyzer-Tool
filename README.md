@@ -26,17 +26,47 @@ The outputs:
 
   Graph 6: Proportion of templated vs nontemplated at all positions for all isomiRs in different groups.
 
-## Install dependencies
+## Installation
 
-1. pandas
+### Installing directly to your machine
+
+1. Install Python [here](https://www.python.org/downloads/) and R [here](https://cran.r-project.org/).
+
+2. Install Python packages.
+
+Navigate the terminal to the project folder and type this command:
 
 ```
-pip install pandas
+pip install -r ./requirements.txt
 ```
 
-2. ggplot2, patchwork, dplyr, ggrepel, tidyr (just uncomment the first line of code in 9_visualise.R to install, then comment again once the installation is done)
+3. Install R packages ggplot2, patchwork, dplyr, ggrepel, tidyr: just uncomment the first line of code in 9_visualise.R to install, then comment again once the installation is done.
 
-3. bedtools [install here](https://bedtools.readthedocs.io/en/latest/content/installation.html)
+4. bedtools [here](https://bedtools.readthedocs.io/en/latest/content/installation.html)
+
+### Using Docker
+
+1. Install Docker.
+
+2. Pull our public Docker image and start a container.
+
+Navigate the terminal to the project folder and type this command:
+
+```
+docker run -dit --name emma-isomir -v "$(pwd)":/emma thaogum/emma-isomir
+```
+
+The above command will pull "thaogum/emma-isomir" image, start a container named "emma-isomir", and synchronise all data and code inside the project folder in your host machine with "emma" folder in the container.
+
+3. Access the terminal of the container to use the software.
+
+```
+docker exec -it emma-isomir /bin/bash
+```
+
+This command allows you to access and interact with the "emma" folder in the Docker container, where you can run the software.
+
+**Note**: We also provide the Dockerfile so that you can build the image yourself.
 
 ## Run the program
 
