@@ -46,7 +46,7 @@ pip install -r ./requirements.txt
 
 ### Using Docker
 
-1. Install Docker.
+1. Install Docker [here](https://docs.docker.com/engine/install/).
 
 2. Pull our public Docker image and start a container.
 
