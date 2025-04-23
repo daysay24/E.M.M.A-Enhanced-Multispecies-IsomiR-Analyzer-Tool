@@ -26,6 +26,8 @@ The outputs:
 
   Graph 6: Proportion of templated vs nontemplated at all positions for all isomiRs in different groups.
 
+![Demo visualisation](./img/demo.gif)
+
 ## Installation
 
 ### Installing directly to your machine
