@@ -1,0 +1,260 @@
+@font-face {
+    font-family: Acumin;
+    font-weight: bold;
+    src: url("Acumin-BdPro.otf") format("opentype");
+}
+
+#app-container {
+    width: 100%;
+    max-width: none;
+}
+
+body {
+    background-color: #f9f9f9;
+    color: #333333;
+    font-size: 15px;
+    margin: 0px;
+}
+
+hr {
+    margin: 0.3rem 0rem;
+}
+
+.banner {
+    height: 5.5rem;
+    padding: 0rem 2rem 0rem;
+    background-color: white;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.banner Img {
+    position: relative;
+    height: 3rem;
+    width: auto;
+    margin-left: 2%;
+}
+
+H6 {
+    color: #169873;
+    font-weight: 300;
+}
+
+H6, H3 {
+    font-family: Acumin, "Helvetica Neue", sans-serif;
+}
+
+#left-column {
+    margin-top: 20px;
+    padding: 0rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: calc(100vh - 5.5rem);
+    overflow-y: scroll;
+}
+
+#right-column {
+    background-color: #f4f4f4;
+    padding: 0rem 1rem;
+    min-height: calc(100vh - 5.5rem);
+    height: 100vh;
+    display: flex;
+    flex-flow: row wrap;
+}
+
+.table-row {
+    height: 63px;
+    vertical-align: middle;
+    font-size: 13px;
+}
+
+.wait_time_graph > div, .patient_score_graph > div {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+.draglayer {
+    cursor: pointer !important;
+}
+
+#analysis-type {
+    margin: 3px 0px;
+    font-family: "Helvetica Neue", sans-serif;
+    text-align: justify;
+}
+
+#control-card > p {
+    font-weight: bold;
+}
+
+#control-card {
+    width: 100%
+}
+
+#legend-checklist {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    overflow-y: scroll;
+    width: 100%;
+    max-height: 30%;
+}
+
+.legend-indicator {
+    align-self: center;
+}
+
+.graph_container {
+    background-color: #FFFFFF;
+    padding: 1rem;
+    margin: 5px 5px 5px 5px;
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+
+.graph_container > b {
+    line-height: 2.5;
+}
+
+#patient_volume_hm {
+    height: 400px;
+}
+
+.table-row:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.row-department > b {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+#header_wait_time_min, #header_care_score {
+    display: table;
+}
+
+#header_wait_time_min > b, #header_care_score > b {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.Select--multi .Select-value {
+    color: #169873;
+    background-color: #FFFFFF;
+    border-color: #169873 !important;
+}
+
+input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* Label immediately after checkbox: color when NOT checked */
+label:has(input[type="checkbox"]) {
+    color: gray;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+label:has(input[type="checkbox"]:checked) {
+    color: black;
+}
+
+input[type="checkbox"] + .legend-indicator {
+    opacity: 50%;
+}
+
+input[type="checkbox"]:checked + .legend-indicator {
+    opacity: 100%;
+}
+
+#legend-checklist > label {
+    min-width: 25%;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    padding-left: 5px;
+}
+
+.VirtualizedSelectOption {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+/*
+  ##Device = Most of the Smartphones Mobiles / ipad (Portrait)
+  */
+
+@media only screen and (max-width: 750px), screen and (min-width: 768px) and (max-width: 1024px) {
+
+    body {
+        font-size: 13px;
+        margin: 0px;
+    }
+
+    .banner {
+        height: 6rem;
+    }
+
+    h5 {
+        font-size: 1.8rem;
+    }
+
+    h3 {
+        font-size: 2.5rem;
+    }
+
+    #analysis-type {
+        margin: 3px 0px;
+    }
+
+    #left-column, #right-column {
+        width: 100%;
+        margin-left: 0px;
+    }
+
+    #right-column {
+        padding: 0rem 0.5rem;
+    }
+
+    #reset-btn-outer {
+        text-align: center;
+    }
+
+    .table-row > div {
+        width: 100% !important;
+        text-align: center;
+        margin: auto;
+    }
+
+    .table-row:nth-child(even), .table-row:nth-child(odd) {
+        background-color: #FFFFFF;
+    }
+
+    #header {
+        display: none;
+    }
+
+    #wait_time_table:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    .graph_container > b {
+        line-height: 2.5;
+        font-size: 13px;
+        display: block;
+        text-align: center;
+    }
+
+    .annotation-text {
+        font-size: 0.8rem !important;
+    }
+
+}

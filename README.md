@@ -44,6 +44,8 @@ pip install -r ./requirements.txt
 
 4. bedtools [here](https://bedtools.readthedocs.io/en/latest/content/installation.html)
 
+5. miranda [here](https://anaconda.org/bioconda/miranda)
+
 ### Using Docker
 
 1. Install Docker [here](https://docs.docker.com/engine/install/).
@@ -53,7 +55,7 @@ pip install -r ./requirements.txt
 Navigate the terminal to the project folder and type this command:
 
 ```
-docker run -dit --name emma-isomir -v "$(pwd)":/emma thaogum/emma-isomir
+docker run -dit -p 8050:8050 --name emma-isomir -v "$(pwd)":/emma thaogum/emma-isomir
 ```
 
 The above command will pull "thaogum/emma-isomir" image, start a container named "emma-isomir", and synchronise all data and code inside the project folder in your host machine with "emma" folder in the container.

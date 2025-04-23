@@ -1,0 +1,851 @@
+import dash
+
+from dash import dcc, html, Input, Output, ClientsideFunction
+import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
+
+import numpy as np
+import pandas as pd
+import datetime
+from datetime import datetime as dt
+import pathlib
+import os 
+
+# Create ar Dash instance 
+app = dash.Dash(
+    __name__,
+    meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
+)
+app.title = "E.M.M.A Enhanced Multispecies isomiR Analyzer Tool"
+server = app.server
+app.config.suppress_callback_exceptions = True
+
+
+################
+# PATH
+################
+# Base path
+BASE_PATH = pathlib.Path(__file__).parent.resolve()
+# Data path
+DATA_PATH = BASE_PATH.joinpath("data").resolve()
+
+#################
+# IMPORT DATASETS
+################# 
+# Read the meta file to get details of experimental design
+metadata_df = pd.read_csv(DATA_PATH.joinpath("metadata.csv"))
+
+# species-groups dict from metadata, for dropdown 
+groups_by_species = metadata_df.groupby('species').apply(lambda x: set(x['group'])).to_dict()
+
+# Species-alias dict from metadata, for dropdown 
+species_list = dict(zip(metadata_df['species'].unique(), metadata_df['alias'].unique()))
+
+# Create lists to store DataFrames before concatenation
+canonical_isomirs_list = []
+isomir_types_list = []
+isomir_types_nt_list = []
+templated_nontemplated_extended_list = []
+nt_extended_list = []
+templated_nontemplated_all_list = []
+
+for species in species_list.keys(): 
+    # Get the list of outputs
+    outputs = os.listdir(DATA_PATH.joinpath(f'{species}'))
+    for output in outputs: 
+        output_df = pd.read_csv(DATA_PATH.joinpath(f'{species}/{output}'))
+        output_df['species'] = species  # Add species column
+        
+        # Collect DataFrames in lists instead of appending directly
+        if output == 'graph_1_data.csv':
+            canonical_isomirs_list += [output_df]
+        elif output == 'graph_2_data.csv':
+            isomir_types_list += [output_df]
+        elif output == 'graph_3_data.csv':
+            isomir_types_nt_list += [output_df]
+        elif output == 'graph_4_data.csv':
+            templated_nontemplated_extended_list += [output_df]
+        elif output == 'graph_5_data.csv':
+            nt_extended_list += [output_df]
+        elif output == 'graph_6_data.csv':
+            templated_nontemplated_all_list += [output_df]
+
+# Efficient concatenation at the end
+canonical_isomirs_df = pd.concat(canonical_isomirs_list, ignore_index=True) if canonical_isomirs_list else pd.DataFrame()
+isomir_types_df = pd.concat(isomir_types_list, ignore_index=True) if isomir_types_list else pd.DataFrame()
+isomir_types_nt_df = pd.concat(isomir_types_nt_list, ignore_index=True) if isomir_types_nt_list else pd.DataFrame()
+templated_nontemplated_extended_df = pd.concat(templated_nontemplated_extended_list, ignore_index=True) if templated_nontemplated_extended_list else pd.DataFrame()
+nt_extended_df = pd.concat(nt_extended_list, ignore_index=True) if nt_extended_list else pd.DataFrame()
+templated_nontemplated_all_df = pd.concat(templated_nontemplated_all_list, ignore_index=True) if templated_nontemplated_all_list else pd.DataFrame()
+
+# Map analysis type with dataframe
+# Analysis type list, for dropdown 
+analysis_type_list = {
+    "Canonical miRNAs & isomiRs (all groups)": canonical_isomirs_df, 
+    "IsomiR types (rpm)": isomir_types_df,
+    "IsomiR types (unique tags)": isomir_types_df, 
+    "All isomiR types (charactised by nt)": isomir_types_nt_df,
+    "3'isomiR types (charactised by nt)": isomir_types_nt_df,
+    "5'isomiR types (charactised by nt)": isomir_types_nt_df,
+    "Templated vs Non-templated at extended positions (%)": templated_nontemplated_extended_df,
+    "Templated vs Non-templated at extended positions (unique tags)": templated_nontemplated_extended_df,
+    "Nt characterisation at extended positions (%)": nt_extended_df,
+    "Nt characterisation at extended positions (unique tags)": nt_extended_df,
+    "Templated vs Non-templated at all positions": templated_nontemplated_all_df
+}
+
+#################
+# UI core components
+#################
+# Side bar - Descritipon
+def description_card():
+    """
+
+    :return: A Div containing dashboard title & descriptions.
+    """
+    return html.Div(
+        id="description-card",
+        children=[
+            html.H6("E.M.M.A Enhanced Multispecies isomiR Analyzer Tool"),
+            html.H3("IsomiR Analytics Dashboard")
+        ],
+    )
+
+# Side bar - filter 
+def generate_control_card():
+    """
+
+    :return: A Div containing controls for graphs.
+    """
+    return html.Div(
+        id="control-card",
+        children=[
+            html.P("Select type of analysis"),
+            html.Div(id='analysis-type'),
+            dcc.Dropdown(
+                id="analysis-type-select",
+                options=[{"label": i, "value": i} for i in analysis_type_list.keys()],
+            ),
+            html.Br(),
+            html.P("Select species"),
+            dcc.Dropdown(
+                id="species-select",
+                options=[{"label": v, "value": k} for k,v in species_list.items()],
+                multi=True,
+            ),
+            html.Br(),
+            html.P("Select groups"),
+            dcc.Dropdown(
+                id="group-select",
+                multi=True,
+            ),  
+            html.Br(),
+            html.P(id='legend-title'),
+            dcc.Checklist(
+                id = 'legend-checklist',
+                labelStyle={"display": "flex"},
+                value=[]
+            )
+        ],
+    )
+
+################
+# Style calculation
+###############
+# Number of graph calculation 
+def calculate_number_graphs(selected_analysis_type, selected_species_len, selected_groups_len): 
+    if selected_analysis_type in ["Canonical miRNAs & isomiRs (all groups)", "All isomiR types (charactised by nt)",  "3'isomiR types (charactised by nt)", "5'isomiR types (charactised by nt)"]:
+        return selected_species_len
+    else: 
+        return selected_species_len * selected_groups_len
+
+# Size calculation 
+def calculate_sizes(selected_analysis_type, selected_species_len, selected_groups_len):
+    """
+    Calculate sizes of: 
+    - species container div (height, width)
+    - subplot (height, width)
+
+    Return a dict {}
+    """
+    # Number of graph 
+    graph_number = calculate_number_graphs(selected_analysis_type, selected_species_len, selected_groups_len)
+    
+    graph_container_width = ""
+    graph_container_height = ""
+    graph_subplot_width = ""
+    graph_subplot_height = "100%"
+
+    if selected_groups_len == 1 or selected_analysis_type in ["Canonical miRNAs & isomiRs (all groups)", "All isomiR types (charactised by nt)",  "3'isomiR types (charactised by nt)", "5'isomiR types (charactised by nt)"]: 
+        if graph_number == 1:  
+            graph_container_width = "100%"
+            graph_container_height = "100%"
+        else: 
+            graph_container_width = "50%"
+            graph_container_height = "50%"
+        graph_subplot_width = "100%"
+        
+    else: 
+        if selected_species_len < 3 :
+            graph_container_height = str((1 / selected_species_len * 100)) + "%" 
+        else:
+            graph_container_height = str((1 / 3 * 100)) + "%" 
+        graph_container_width = "100%"
+        graph_subplot_width = str(1 / 3 * 100) + "%"
+    
+    return {
+        "graph_container_width": "calc(" + graph_container_width + " - 10px)",
+        "graph_container_height": "calc(" + graph_container_height + " - 10px)",
+        "graph_subplot_width": graph_subplot_width,
+        "graph_subplot_height": graph_subplot_height
+    }
+    
+
+#################
+# Graphs generation
+#################
+# Graph 1 
+def generate_individual_graph_1(selected_analysis_type, species, groups, sizes, selected_legend_items, legend_item_color):
+    # Load data
+    data = analysis_type_list[selected_analysis_type]
+    data = data[data['species'] == species]
+    data = data[data['group'].isin(groups)]
+    data = data[data['type'].isin(selected_legend_items)]
+
+    # Create figure
+    fig = go.Figure()
+
+    # Add a line for each 'type'
+    for trace_type in data['type'].unique():
+        df_sub = data[data['type'] == trace_type]
+        fig.add_trace(go.Scatter(
+            x=df_sub['group'],
+            y=df_sub['rpm'],
+            mode='lines+markers',
+            name=trace_type,
+            line=dict(color=legend_item_color.get(trace_type, 'pink'))  # fallback to default Plotly blue
+        ))
+
+    # Update layout
+    fig.update_layout(
+        autosize=True,
+        margin=dict(
+            pad=10,
+            t=20,
+            b=0,
+            l=2,
+            r=20
+        ),
+        yaxis_title="Count",
+        barmode='stack',
+        plot_bgcolor='white',
+        showlegend=False
+    )
+
+    # Update x axis 
+    fig.update_xaxes(
+        title="<b>RPM</b>",
+        mirror=True,
+        ticks='outside',
+        showline=True,
+        linecolor='black',
+    )
+
+    # Update y axis 
+    fig.update_yaxes(
+        title="<b>Group</b>",
+        mirror=True,
+        ticks='outside',
+        showline=True,
+        linecolor='black',
+        gridcolor='lightgrey'
+    )
+
+    return dcc.Graph(
+        figure=fig, 
+        config={'displayModeBar': False}, 
+        style={
+            "width": sizes['graph_subplot_width'], 
+            "height": sizes['graph_subplot_height'],
+            "minWidth": sizes['graph_subplot_width']
+    })
+
+# Graph 2 
+def generate_individual_graph_2(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color):
+    # Load data
+    data = analysis_type_list[selected_analysis_type]
+    data = data[data['species'] == species]
+    data = data[data['group'] == group]
+    data = data[data['grouped_type'].isin(selected_legend_items)]
+
+    # Value type
+    value_type = ''
+    if selected_analysis_type == 'IsomiR types (rpm)': 
+        value_type = 'rpm'
+    else:
+        value_type = 'unique_tag' 
+
+    fig = px.pie(data, values=value_type, names='grouped_type', color='grouped_type',
+                color_discrete_map=legend_item_color)
+    return dcc.Graph(
+        figure=fig, 
+        config={'displayModeBar': False}, 
+        style={
+            "width": sizes['graph_subplot_width'], 
+            "height": sizes['graph_subplot_height'],
+            "minWidth": sizes['graph_subplot_width']
+    })
+
+# Graph 3 
+def generate_individual_graph_3(selected_analysis_type, species, groups, sizes, selected_legend_items, legend_item_color):
+    # Load data 
+    data = analysis_type_list[selected_analysis_type]
+    data = data[data['species'] == species]
+    data = data[data['group'].isin(groups)]
+    data = data[data['type_nt'].isin(selected_legend_items)]
+
+    # value type
+    if selected_analysis_type == "3'isomiR types (charactised by nt)":
+        data = data[data['grouped_type'] == "3'isomiR"]
+    elif selected_analysis_type == "5'isomiR types (charactised by nt)":
+        data = data[data['grouped_type'] == "5'isomiR"]
+
+    data['percentage'] = data.groupby('group')['rpm'].transform(lambda x: (x / x.sum()) * 100)
+
+    # Create stacked bar chart
+    fig = go.Figure()
+
+    # Create traces 
+    traces = []
+
+    # Group records by type_nt
+    df_grouped = data.groupby('type_nt')
+    for type_nt, group in df_grouped:
+        traces.append(go.Bar(
+            x=group['group'],
+            y=group['percentage'],
+            name=type_nt,
+            marker=dict(color=legend_item_color.get(type_nt, '#636EFA')),
+        ))
+
+    # Create the figure
+    fig = go.Figure(traces)
+
+    # Update layout
+    fig.update_layout(
+        autosize=True,
+        margin=dict(
+            pad=10,
+            t=20,
+            b=0,
+            l=2,
+            r=20
+        ),
+        yaxis=dict(title='<b>Percentage</b>', ticksuffix='%'),
+        xaxis=dict(title=''),
+        barmode='stack',
+        plot_bgcolor='white',
+        showlegend=False
+    )
+
+    # Update x axis 
+    fig.update_xaxes(
+        mirror=True,
+        ticks='outside',
+        showline=True,
+        linecolor='black',
+    )
+
+    # Update y axis
+    fig.update_yaxes(
+        mirror=True,
+        ticks='outside',
+        showline=True,
+        linecolor='black',
+        gridcolor='lightgrey'
+    )
+    
+    return dcc.Graph(
+        figure=fig, 
+        config={'displayModeBar': False}, 
+        style={
+            "width": sizes['graph_subplot_width'], 
+            "height": sizes['graph_subplot_height'],
+            "minWidth": sizes['graph_subplot_width']
+    })
+
+# Graph 4 
+def generate_individual_graph_4(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color):
+    # Load data
+    data = analysis_type_list[selected_analysis_type]
+    data = data[data['species'] == species]
+    data = data[data['group'] == group]
+    data = data[data['templated'].isin(selected_legend_items)]
+
+    # Value type 
+    value_type = ''
+    y_title = ''
+    if selected_analysis_type == 'Templated vs Non-templated at extended positions (unique tags)':
+        value_type = 'count'
+        y_title = '# Unique tags'
+    else: 
+        value_type = 'percentage'
+        y_title = '%'
+        data['percentage'] = data.groupby('position')['count'].transform(lambda x: (x / x.sum()) * 100)
+
+    # Create traces for each medal type
+    traces = []
+    templated_categories = data['templated'].unique()
+    for templated_category in templated_categories:
+        df_filtered = data[data['templated'] == templated_category]
+        traces.append(go.Bar(
+            x=df_filtered['position'],
+            y=df_filtered[value_type],
+            name=templated_category,
+            marker=dict(color=legend_item_color.get(templated_category, "#636EFA"))  # Default to blue if not specified
+        ))
+
+    # Create the figure
+    fig = go.Figure(traces)
+
+    # Update layout
+    fig.update_layout(
+        autosize=True,
+        title=f"<b>{group}</b>",
+        margin=dict(
+            pad=10,
+            t=40,
+            b=0,
+            l=2,
+            r=20
+        ),
+        yaxis_title=f'<b>{y_title}</b>',
+        xaxis_title="<b>Position</b>",
+        barmode='stack',
+        plot_bgcolor='white',
+        showlegend=False
+    )
+
+    # Update x axis 
+    fig.update_xaxes(
+        mirror=True,
+        ticks='outside',
+        showline=True,
+        linecolor='black',
+    )
+
+    # Update y axis 
+    fig.update_yaxes(
+        mirror=True,
+        ticks='outside',
+        showline=True,
+        linecolor='black',
+        gridcolor='lightgrey'
+    )
+
+    return dcc.Graph(
+        figure=fig, 
+        config={'displayModeBar': False}, 
+        style={
+            "width": sizes['graph_subplot_width'], 
+            "height": sizes['graph_subplot_height'],
+            "minWidth": sizes['graph_subplot_width']
+        })
+
+# Graph 5
+def generate_individual_graph_5(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color):
+    # Load data
+    data = analysis_type_list[selected_analysis_type]
+    data = data[data['species'] == species]
+    data = data[data['group'] == group]
+    data = data[data['nucleotide'].isin(selected_legend_items)]
+
+    # Value type 
+    value_type = ''
+    y_title = ''
+    if selected_analysis_type == 'Nt characterisation at extended positions (unique tags)':
+        value_type = 'count'
+        y_title = '# Unique tags'
+    else: 
+        value_type = 'percentage'
+        y_title = '%'
+        data['percentage'] = data.groupby('position')['count'].transform(lambda x: (x / x.sum()) * 100)
+
+    # Create stacked bar chart
+    fig = go.Figure()
+
+    # Create traces 
+    traces = []
+
+    # Group records by type_nt
+    df_grouped = data.groupby('nucleotide')
+    for nucleotide, grouped in df_grouped:
+        traces.append(go.Bar(
+            x=grouped['position'],
+            y=grouped[value_type],
+            name=nucleotide,
+            marker=dict(color=legend_item_color.get(nucleotide, '#636EFA')),
+        ))
+
+    # Create the figure
+    fig = go.Figure(traces)
+
+    # Update layout
+    fig.update_layout(
+        autosize=True,
+        title=f"<b>{group}</b>",
+        margin=dict(
+            pad=10,
+            t=40, 
+            b=0,
+            l=2,
+            r=20
+        ),
+        yaxis=dict(title=f'<b>{y_title}</b>', ticksuffix='%'),
+        xaxis=dict(title='<b>Position</b>'),
+        legend_title="Type",
+        barmode='stack',
+        plot_bgcolor='white',
+        showlegend=False
+    )
+
+    # Update x axis 
+    fig.update_xaxes(
+        mirror=True,
+        ticks='outside',
+        showline=True,
+        linecolor='black',
+    )
+
+    # Update y axis 
+    fig.update_yaxes(
+        mirror=True,
+        ticks='outside',
+        showline=True,
+        linecolor='black',
+        gridcolor='lightgrey'
+    )
+    
+    return dcc.Graph(
+        figure=fig, 
+        config={'displayModeBar': False}, 
+        style={
+            "width": sizes['graph_subplot_width'], 
+            "height": sizes['graph_subplot_height'],
+            "minWidth": sizes['graph_subplot_width']
+        })
+
+# Graph 6
+def generate_individual_graph_6(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color):
+    # Load data
+    data = analysis_type_list[selected_analysis_type]
+    data = data[data['species'] == species]
+    data = data[data['group'] == group]
+    data = data[data['templated'].isin(selected_legend_items)]
+
+    # Get the max position 
+    position_count = data[data['position'].str.isnumeric()].groupby('position')['count'].sum() 
+    position_count.index = position_count.index.astype(int)
+    max_position = position_count[position_count > 0].index.max()
+
+    is_numeric = data['position'].str.isnumeric()
+    numeric_position_df = data[is_numeric]
+    numeric_position_df = numeric_position_df[(numeric_position_df['position'].astype(float) <= max_position)]
+    df = pd.concat([data[~is_numeric], numeric_position_df], ignore_index=True)
+
+    # Create traces
+    traces = []
+    for templated_category, grouped in df.groupby('templated'):
+        traces.append(go.Bar(
+            x=grouped['position'],
+            y=grouped['count'],
+            name=templated_category,
+            marker=dict(color=legend_item_color.get(templated_category, "#636EFA"))  # Default to blue if not specified
+        ))
+
+    # Create the figure
+    fig = go.Figure(traces)
+
+    # Update layout
+    fig.update_layout(
+        autosize=True,
+        title=f'<b>{group}</b>',
+        margin=dict(
+            pad=10,
+            t=40,
+            b=0,
+            l=2,
+            r=20
+        ),
+        yaxis_title="<b># Unique tags</b>",
+        xaxis_title="<b>Positions</b>",
+        barmode='stack',
+        plot_bgcolor='white',
+        showlegend=False
+    )
+
+    # Update x axis
+    fig.update_xaxes(
+        mirror=True,
+        ticks='outside',
+        showline=True,
+        linecolor='black',
+    )
+
+    # Update y axis
+    fig.update_yaxes(
+        mirror=True,
+        ticks='outside',
+        showline=True,
+        linecolor='black',
+        gridcolor='lightgrey'
+    )
+
+    # Show figure
+    return dcc.Graph(
+        figure=fig, 
+        config={'displayModeBar': False}, 
+        style={
+            "width": sizes['graph_subplot_width'], 
+            "height": sizes['graph_subplot_height'],
+            "minWidth": sizes['graph_subplot_width']
+        })
+
+
+# Graphs for a species of a type
+def generate_species_graphs(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color):
+   
+    species_graphs = []
+    
+    if selected_analysis_type == 'Canonical miRNAs & isomiRs (all groups)':
+        species_graphs.append(generate_individual_graph_1(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color))
+    elif selected_analysis_type in ['IsomiR types (rpm)', 'IsomiR types (unique tags)']:
+        for group in selected_groups: 
+            species_graphs.append(generate_individual_graph_2(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color))
+    elif selected_analysis_type in ['All isomiR types (charactised by nt)', "3'isomiR types (charactised by nt)", "5'isomiR types (charactised by nt)"]:
+        species_graphs.append(generate_individual_graph_3(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color))
+    elif selected_analysis_type in ["Templated vs Non-templated at extended positions (%)", 'Templated vs Non-templated at extended positions (unique tags)']:
+        for group in selected_groups: 
+            species_graphs.append(generate_individual_graph_4(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color))
+    elif selected_analysis_type in ['Nt characterisation at extended positions (%)', 'Nt characterisation at extended positions (unique tags)']:
+        for group in selected_groups: 
+            species_graphs.append(generate_individual_graph_5(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color))
+    elif selected_analysis_type == 'Templated vs Non-templated at all positions':
+        for group in selected_groups: 
+            species_graphs.append(generate_individual_graph_6(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color))
+
+    return species_graphs
+
+# Generate container of subplots 
+def generate_graph_subplots(species_graphs):
+    return html.Div(children=species_graphs, style={
+        "width": "100%",
+        "height": "calc(100% - 40px)",
+        "display": "flex",
+        "flexDirection": "row"
+    })
+
+
+# Graph container card 
+def generate_graph_containers(selected_analysis_type, selected_species, selected_groups, selected_legend_items, legend_item_color): 
+    species_container_divs = []
+
+    selected_species_len = len(selected_species)
+    selected_groups_len = len(selected_groups)
+
+    sizes = calculate_sizes(selected_analysis_type, selected_species_len, selected_groups_len)
+
+    for species in selected_species: 
+        species_graphs = generate_species_graphs(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color) 
+
+        species_container_divs.append(
+            html.Div(
+                id=f'{species}_container',
+                className='graph_container',
+                children=[
+                    html.B(species_list[species]),
+                    html.Hr()
+                ]
+                + [generate_graph_subplots(species_graphs)],
+                style={
+                    "width": sizes["graph_container_width"], 
+                    "height": sizes["graph_container_height"],
+                    "overflowX": "scroll"
+                }
+            )        
+        )
+    return species_container_divs
+
+def generate_colors(item_number): 
+    if item_number <= 5: 
+        base_colors = ["#A8FCD5","#30A0C5", "#FFA6A6", "#FFD678", "#A7B6FF"]
+        return base_colors[:item_number]
+    elif item_number <= 12:
+        return px.colors.qualitative.Set3[:item_number]
+    else: 
+        return px.colors.qualitative.Alphabet[24-item_number:-1]
+
+def get_legend_item_color(selected_analysis_type, selected_species, selected_groups):
+    if selected_analysis_type == "Canonical miRNAs & isomiRs (all groups)":
+        return {
+            "Canonical": "#A8FCD5",
+            "IsomiR": "#A7B6FF"
+        }
+    elif selected_analysis_type in ["IsomiR types (rpm)", "IsomiR types (unique tags)"]:
+        return {
+            "3'isomiR":'#A8FCD5',
+            "5'isomiR":'#30A0C5',
+            "Both end isomiR":'#FFA6A6',
+            "Canonical":'#FFD678',
+            "Others": '#A7B6FF'
+        }
+    elif selected_analysis_type in ["Templated vs Non-templated at extended positions (%)", "Templated vs Non-templated at extended positions (unique tags)", "Templated vs Non-templated at all positions"]:
+        return {
+            "Templated": "#A8FCD5",
+            "Nontemplated": "#A7B6FF"
+        }
+    elif selected_analysis_type in ["Nt characterisation at extended positions (%)", "Nt characterisation at extended positions (unique tags)"]:
+        return {
+            "a": "#A8FCD5",
+            "c": "#A7B6FF",
+            "g": "#FFA6A6",
+            "u":"#30A0C5"
+        }
+    else:
+        data = analysis_type_list[selected_analysis_type]
+        data = data[data['species'].isin(selected_species)]
+        data = data[data['group'].isin(selected_groups)]
+        if selected_analysis_type == "3'isomiR types (charactised by nt)":
+            data = data[data['grouped_type'] == "3'isomiR"]
+        elif selected_analysis_type == "5'isomiR types (charactised by nt)":
+            data = data[data['grouped_type'] == "5'isomiR"]
+
+        legend_items = list(data['type_nt'].unique())
+        colors = generate_colors(len(legend_items))
+        
+        return dict(zip(legend_items, colors))
+
+def get_legend_title(selected_analysis_type):
+    if selected_analysis_type in ["Templated vs Non-templated at extended positions (%)", "Templated vs Non-templated at extended positions (unique tags)", "Templated vs Non-templated at all positions"]: 
+        return 'Templated'
+    elif selected_analysis_type in ["Nt characterisation at extended positions (%)", "Nt characterisation at extended positions (unique tags)"] :
+        return 'Nucleotide'
+    else:
+        return 'Variation type'
+    
+# MAIN
+app.layout = html.Div(
+    id="app-container",
+    children=[
+        # Storage 
+        dcc.Store(id="legend-item-color"),
+        # Side bar
+        html.Div(
+            id="left-column",
+            className="three columns",
+            children=[description_card(), generate_control_card()]
+        ),
+        # Right column
+        html.Div(
+            id="right-column",
+            className="nine columns",
+            style={
+                "overflowY": "scroll"
+            }
+        ),
+    ],
+)
+
+
+@app.callback(
+    Output("analysis-type", "children"),
+    Input("analysis-type-select", "value")
+)
+def update_analysis_type(selected_analysis_type):
+    if not selected_analysis_type: 
+        return ''
+    return selected_analysis_type
+
+@app.callback(
+    Output("group-select", "options"),
+    Input("species-select", "value")
+)
+def update_group_options(selected_species):
+    if not selected_species:
+        return []  # Empty options if no species selected
+    
+    # Get the intersection of all groups for selected species
+    available_groups = set()
+    for species in selected_species: 
+        groups = groups_by_species.get(species, set())
+        if len(available_groups) == 0:
+            available_groups = groups
+        else:
+            available_groups = available_groups & groups
+
+    return [{"label": g, "value": g} for g in sorted(available_groups)]
+
+@app.callback(
+    [   Output('legend-checklist', 'options'),
+        Output('legend-checklist', 'value'),
+        Output('legend-item-color', 'data'),
+        Output('legend-title', 'children')
+    ],
+    [
+        Input('analysis-type-select', 'value'),
+        Input('species-select', 'value'),
+        Input('group-select', 'value'),
+    ]    
+)
+def update_legend_checklist(selected_analysis_type, selected_species, selected_groups):
+    
+    if not selected_analysis_type or not selected_species or not selected_groups:
+        return [], [], {}, ''
+    
+    legend_item_color = get_legend_item_color(selected_analysis_type, selected_species, selected_groups)
+    legend_title = get_legend_title(selected_analysis_type)
+
+    return [
+        {
+            "label": [
+                html.Div(
+                    className="legend-indicator",
+                    style={
+                        "minWidth": "15px",
+                        "height": "15px",
+                        "backgroundColor": color,
+                        "borderRadius": "3px"
+                    }
+                ),
+                html.Span(legend_item, style={"font-size": 15, "padding-left": 5}),
+            ],
+            "value": legend_item,
+        } 
+        for legend_item, color in legend_item_color.items()
+    ], list(legend_item_color.keys()), legend_item_color, legend_title
+
+@app.callback(
+    Output('right-column', 'children'),
+    [
+        Input('analysis-type-select', 'value'),
+        Input('species-select', 'value'),
+        Input('group-select', 'value'),
+        Input('legend-checklist', 'value'),
+        Input('legend-item-color', 'data')
+    ],
+)
+def update_graphs(selected_analysis_type, selected_species, selected_groups, selected_legend_items, legend_item_color):
+    if not selected_species or not selected_groups:
+        return []
+    return generate_graph_containers(selected_analysis_type, selected_species, selected_groups, selected_legend_items, legend_item_color)
+
+
+# Run the server
+if __name__ == "__main__":
+    app.run(debug=True)    
+
+        
+
+
+
