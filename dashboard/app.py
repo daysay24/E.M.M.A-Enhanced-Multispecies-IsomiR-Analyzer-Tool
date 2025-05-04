@@ -21,7 +21,6 @@ app.title = "E.M.M.A Enhanced Multispecies isomiR Analyzer Tool"
 server = app.server
 app.config.suppress_callback_exceptions = True
 
-
 ################
 # PATH
 ################
@@ -266,9 +265,8 @@ def generate_individual_graph_1(selected_analysis_type, species, groups, sizes, 
         figure=fig, 
         config={'displayModeBar': False}, 
         style={
-            "width": sizes['graph_subplot_width'], 
-            "height": sizes['graph_subplot_height'],
-            "minWidth": sizes['graph_subplot_width']
+            "width": "100%", 
+            "height": "100%"
     })
 
 # Graph 2 
@@ -292,9 +290,8 @@ def generate_individual_graph_2(selected_analysis_type, species, group, sizes, s
         figure=fig, 
         config={'displayModeBar': False}, 
         style={
-            "width": sizes['graph_subplot_width'], 
-            "height": sizes['graph_subplot_height'],
-            "minWidth": sizes['graph_subplot_width']
+            "width": "100%", 
+            "height": "100%"
     })
 
 # Graph 3 
@@ -370,9 +367,8 @@ def generate_individual_graph_3(selected_analysis_type, species, groups, sizes, 
         figure=fig, 
         config={'displayModeBar': False}, 
         style={
-            "width": sizes['graph_subplot_width'], 
-            "height": sizes['graph_subplot_height'],
-            "minWidth": sizes['graph_subplot_width']
+            "width": "100%", 
+            "height": "100%"
     })
 
 # Graph 4 
@@ -448,9 +444,8 @@ def generate_individual_graph_4(selected_analysis_type, species, group, sizes, s
         figure=fig, 
         config={'displayModeBar': False}, 
         style={
-            "width": sizes['graph_subplot_width'], 
-            "height": sizes['graph_subplot_height'],
-            "minWidth": sizes['graph_subplot_width']
+            "width": "100%", 
+            "height": "100%"
         })
 
 # Graph 5
@@ -531,9 +526,8 @@ def generate_individual_graph_5(selected_analysis_type, species, group, sizes, s
         figure=fig, 
         config={'displayModeBar': False}, 
         style={
-            "width": sizes['graph_subplot_width'], 
-            "height": sizes['graph_subplot_height'],
-            "minWidth": sizes['graph_subplot_width']
+            "width": "100%", 
+            "height": "100%"
         })
 
 # Graph 6
@@ -607,9 +601,8 @@ def generate_individual_graph_6(selected_analysis_type, species, group, sizes, s
         figure=fig, 
         config={'displayModeBar': False}, 
         style={
-            "width": sizes['graph_subplot_width'], 
-            "height": sizes['graph_subplot_height'],
-            "minWidth": sizes['graph_subplot_width']
+            "width": "100%", 
+            "height": "100%"
         })
 
 
@@ -638,14 +631,26 @@ def generate_species_graphs(selected_analysis_type, species, selected_groups, si
     return species_graphs
 
 # Generate container of subplots 
-def generate_graph_subplots(species_graphs):
-    return html.Div(children=species_graphs, style={
-        "width": "100%",
-        "height": "calc(100% - 40px)",
-        "display": "flex",
-        "flexDirection": "row"
-    })
+def generate_graph_subplots(species_graphs, species, sizes):
+    options = [{
+        "label": [
+            species_graph
+        ],
+        "value": f'{species}_{i}'
 
+    } for i, species_graph in enumerate(species_graphs)]
+
+    return dcc.Checklist(
+        id=f'{species}_graph_checklist',
+        className='species_graph_checklist',
+        options=options,
+        value=[],
+        labelStyle={
+            "width": sizes['graph_subplot_width'], 
+            "height": sizes['graph_subplot_height'],
+            "minWidth": sizes['graph_subplot_width']
+        }
+    )
 
 # Graph container card 
 def generate_graph_containers(selected_analysis_type, selected_species, selected_groups, selected_legend_items, legend_item_color): 
@@ -667,7 +672,7 @@ def generate_graph_containers(selected_analysis_type, selected_species, selected
                     html.B(species_list[species]),
                     html.Hr()
                 ]
-                + [generate_graph_subplots(species_graphs)],
+                + [generate_graph_subplots(species_graphs, species, sizes)],
                 style={
                     "width": sizes["graph_container_width"], 
                     "height": sizes["graph_container_height"],

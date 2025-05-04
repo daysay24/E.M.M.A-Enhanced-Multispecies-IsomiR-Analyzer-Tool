@@ -153,6 +153,13 @@ input[type="checkbox"] {
     height: 0;
 }
 
+.species_graph_checklist {
+    width: 100% !important;
+    height: calc(100% - 40px);
+    display: flex;
+    flex-direction: row
+}
+
 /* Label immediately after checkbox: color when NOT checked */
 label:has(input[type="checkbox"]) {
     color: gray;
