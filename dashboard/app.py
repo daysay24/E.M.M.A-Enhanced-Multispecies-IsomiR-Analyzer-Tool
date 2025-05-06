@@ -1,10 +1,11 @@
 import dash
 
 import dash_bootstrap_components as dbc
-from dash import dcc, html, Input, Output, State 
+from dash import dcc, html, Input, Output, State, callback_context 
 from dash.dependencies import ALL
 import plotly.graph_objects as go
 import plotly.express as px
+import plotly.io as pio
 import dash_daq as daq
 
 import numpy as np
@@ -18,6 +19,7 @@ import os
 app = dash.Dash(
     __name__,
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
+    external_stylesheets=[dbc.themes.BOOTSTRAP]
 )
 app.title = "E.M.M.A Enhanced Multispecies isomiR Analyzer Tool"
 server = app.server
@@ -216,23 +218,17 @@ def generate_control_card():
                 ]
             ),
             html.Button('Download', id='export-btn'),
-            # dbc.Modal(
-            #     [
-            #         dbc.ModalHeader(dbc.ModalTitle("Header"), close_button=True),
-            #         dbc.ModalBody("This modal is vertically centered"),
-            #         dbc.ModalFooter(
-            #             dbc.Button(
-            #                 "Close",
-            #                 id="close-centered",
-            #                 className="ms-auto",
-            #                 n_clicks=0,
-            #             )
-            #         ),
-            #     ],
-            #     id="modal-centered",
-            #     centered=True,
-            #     is_open=Trues,
-            # ),
+            dbc.Modal(
+                [
+                    dbc.ModalHeader(dbc.ModalTitle("Export")),
+                    dbc.ModalBody("Figures are exported successfully. Please check the /outputs/graph folders !"),
+                    dbc.ModalFooter(
+                        dbc.Button("Close", id="close", className="ms-auto", n_clicks=0, color="success")
+                    ),
+                ],
+                id="modal",
+                is_open=False,
+            ),
         ],
     )
 
@@ -528,12 +524,11 @@ def generate_individual_graph_4(selected_analysis_type, species, group, sizes, s
     )
 
     # Figure name 
-    fig_name = f'{selected_analysis_type}-{species}-{group}'
-
+    fig_name = f'{selected_analysis_type}:{species}:{group}'
     figures[fig_name] = fig
 
     return  {
-        'id': f'{selected_analysis_type}-{species}-{group}',
+        'id': fig_name,
         'figure': dcc.Graph(
             figure=fig, 
             config={'displayModeBar': False}, 
@@ -834,23 +829,24 @@ def get_legend_title(selected_analysis_type):
     else:
         return 'Variation type'
     
-def export_figures(selected_analysis_type, selected_figures, stored_figures):     
-    current_analysis_type_folders = [folder for folder in os.listdir(OUTPUT_PATH)
-        if os.path.isdir(os.path.join(OUTPUT_PATH, folder)) and folder.startswith(selected_analysis_type)]
-    
-    analysis_type_folder_path = f'{OUTPUT_PATH}/{selected_analysis_type}' if len(current_analysis_type_folders) == 0 else f'{OUTPUT_PATH}/{selected_analysis_type} ({len(current_analysis_type_folders)})'
-    os.makedirs(analysis_type_folder_path)
-
-    for selected_figure in selected_figures: 
-        selected_figure_names = selected_figure.split('-')
-        species = selected_figure_names[1]
-        group = selected_figure_names[2]
-        fig = stored_figures[selected_figure]
+def export_figures(selected_analysis_type, selected_figures, stored_figures): 
+    if stored_figures and selected_figures:    
+        current_analysis_type_folders = [folder for folder in os.listdir(OUTPUT_PATH)
+            if os.path.isdir(os.path.join(OUTPUT_PATH, folder)) and folder.startswith(selected_analysis_type)]
         
-        figure_path = f'{analysis_type_folder_path}/{species}/{group}'
-        os.makedirs(figure_path)
+        analysis_type_folder_path = f'{OUTPUT_PATH}/{selected_analysis_type}' if len(current_analysis_type_folders) == 0 else f'{OUTPUT_PATH}/{selected_analysis_type} ({len(current_analysis_type_folders)})'
+        os.makedirs(analysis_type_folder_path)
 
-        fig.write_image(f'{figure_path}/Figure.svg', format='svg')
+        for selected_figure_set in selected_figures: 
+            for selected_figure in selected_figure_set:
+                selected_figure_names = selected_figure.split(':')
+                species = selected_figure_names[1]
+                group = selected_figure_names[2]
+                fig = stored_figures[selected_figure]
+            
+                figure_path = f'{analysis_type_folder_path}/{species}/{group}'
+                os.makedirs(figure_path)
+                pio.write_image(fig, f'{figure_path}/Figure.svg', format='svg')
 
 
 # MAIN
@@ -977,13 +973,20 @@ def update_graphs(selected_analysis_type, selected_species, selected_groups, sel
     ]
 )
 def export(n_clicks_open, n_clicks_close, selected_analysis_type, selected_figures, stored_figures, is_open):
-    # if not n_clicks:
-    #     return ""
-    # # TODO 
-    # return "all"
+    ctx = callback_context  # or `ctx = ctx` if using Dash 2.4+
 
-    if n_clicks_open or n_clicks_close:
+    if not ctx.triggered:
+        return is_open
+
+    triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if triggered_id == 'export-btn':
+        export_figures(selected_analysis_type, selected_figures, stored_figures)
         return not is_open
+
+    elif triggered_id == 'close':
+        return not is_open
+
     return is_open
 
 @app.callback(
