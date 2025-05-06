@@ -1,9 +1,11 @@
 import dash
 
-from dash import dcc, html, Input, Output, ClientsideFunction
+import dash_bootstrap_components as dbc
+from dash import dcc, html, Input, Output, State 
+from dash.dependencies import ALL
 import plotly.graph_objects as go
 import plotly.express as px
-from plotly.subplots import make_subplots
+import dash_daq as daq
 
 import numpy as np
 import pandas as pd
@@ -28,6 +30,8 @@ app.config.suppress_callback_exceptions = True
 BASE_PATH = pathlib.Path(__file__).parent.resolve()
 # Data path
 DATA_PATH = BASE_PATH.joinpath("data").resolve()
+# Output path
+OUTPUT_PATH = '../outputs/graphs'
 
 #################
 # IMPORT DATASETS
@@ -145,7 +149,90 @@ def generate_control_card():
                 id = 'legend-checklist',
                 labelStyle={"display": "flex"},
                 value=[]
-            )
+            ),
+            html.Br(),
+            html.Div(
+                id="export-toggle",
+                children=[
+                    html.P('Export'),
+                    daq.BooleanSwitch(id='export-switch', on=False),
+                ]            
+            ),
+            html.Div(
+                id="export-folder-tree",
+                children=[
+                    html.Div([
+                        html.Span("Folder 1", className="folder fa fa-folder-o", **{"data-isexpanded": "true"}),
+                        html.Span("File 11", className="file fa fa-file-excel-o"),
+                        html.Span("File 12", className="file fa fa-file-code-o"),
+                        html.Span("File 13", className="file fa fa-file-pdf-o"),
+                        html.Div([
+                            html.Span("Folder 1-1", className="folder fa fa-folder-o", **{"data-isexpanded": "true"}),
+                            html.Span("File 1-11", className="file fa fa-file-excel-o"),
+                            html.Span("File 1-12", className="file fa fa-file-code-o"),
+                            html.Span("File 1-13", className="file fa fa-file-pdf-o"),
+                        ], className="foldercontainer"),
+                        html.Div([
+                            html.Span("Folder 1-2", className="folder fa fa-folder"),
+                            html.Span("No Items", className="noitems")
+                        ], className="foldercontainer"),
+                        html.Div([
+                            html.Span("Folder 1-3", className="folder fa fa-folder"),
+                            html.Span("No Items", className="noitems")
+                        ], className="foldercontainer"),
+                        html.Div([
+                            html.Span("Folder 1-4", className="folder fa fa-folder"),
+                            html.Span("No Items", className="noitems")
+                        ], className="foldercontainer"),
+                    ], className="foldercontainer"),
+
+                    html.Div([
+                        html.Span("Folder 2", className="folder fa fa-folder-o", **{"data-isexpanded": "true"}),
+                        html.Span("File 21", className="file fa fa-file-excel-o"),
+                        html.Span("File 22", className="file fa fa-file-code-o"),
+                        html.Span("File 23", className="file fa fa-file-pdf-o"),
+                        html.Div([
+                            html.Span("Folder 2-1", className="folder fa fa-folder-o", **{"data-isexpanded": "true"}),
+                            html.Span("File 2-11", className="file fa fa-file-excel-o"),
+                            html.Span("File 2-12", className="file fa fa-file-code-o"),
+                            html.Span("File 2-13", className="file fa fa-file-pdf-o"),
+                            html.Div([
+                                html.Span("Folder 2-1-1", className="folder fa fa-folder"),
+                                html.Span("No Items", className="noitems")
+                            ], className="foldercontainer"),
+                        ], className="foldercontainer"),
+                    ], className="foldercontainer"),
+
+                    html.Div([
+                        html.Span("Folder 3", className="folder fa fa-folder-o", **{"data-isexpanded": "true"}),
+                        html.Span("File 31", className="file fa fa-file-excel-o"),
+                        html.Span("File 32", className="file fa fa-file-code-o"),
+                        html.Span("File 33", className="file fa fa-file-pdf-o"),
+                        html.Div([
+                            html.Span("Folder 3-1", className="folder fa fa-folder"),
+                            html.Span("No Items", className="noitems")
+                        ], className="foldercontainer")
+                    ], className="foldercontainer")
+                ]
+            ),
+            html.Button('Download', id='export-btn'),
+            # dbc.Modal(
+            #     [
+            #         dbc.ModalHeader(dbc.ModalTitle("Header"), close_button=True),
+            #         dbc.ModalBody("This modal is vertically centered"),
+            #         dbc.ModalFooter(
+            #             dbc.Button(
+            #                 "Close",
+            #                 id="close-centered",
+            #                 className="ms-auto",
+            #                 n_clicks=0,
+            #             )
+            #         ),
+            #     ],
+            #     id="modal-centered",
+            #     centered=True,
+            #     is_open=Trues,
+            # ),
         ],
     )
 
@@ -372,7 +459,7 @@ def generate_individual_graph_3(selected_analysis_type, species, groups, sizes, 
     })
 
 # Graph 4 
-def generate_individual_graph_4(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color):
+def generate_individual_graph_4(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color, figures):
     # Load data
     data = analysis_type_list[selected_analysis_type]
     data = data[data['species'] == species]
@@ -440,13 +527,21 @@ def generate_individual_graph_4(selected_analysis_type, species, group, sizes, s
         gridcolor='lightgrey'
     )
 
-    return dcc.Graph(
-        figure=fig, 
-        config={'displayModeBar': False}, 
-        style={
-            "width": "100%", 
-            "height": "100%"
-        })
+    # Figure name 
+    fig_name = f'{selected_analysis_type}-{species}-{group}'
+
+    figures[fig_name] = fig
+
+    return  {
+        'id': f'{selected_analysis_type}-{species}-{group}',
+        'figure': dcc.Graph(
+            figure=fig, 
+            config={'displayModeBar': False}, 
+            style={
+                "width": "100%", 
+                "height": "100%"
+            })
+        }
 
 # Graph 5
 def generate_individual_graph_5(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color):
@@ -607,7 +702,7 @@ def generate_individual_graph_6(selected_analysis_type, species, group, sizes, s
 
 
 # Graphs for a species of a type
-def generate_species_graphs(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color):
+def generate_species_graphs(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color, figures):
    
     species_graphs = []
     
@@ -620,7 +715,7 @@ def generate_species_graphs(selected_analysis_type, species, selected_groups, si
         species_graphs.append(generate_individual_graph_3(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color))
     elif selected_analysis_type in ["Templated vs Non-templated at extended positions (%)", 'Templated vs Non-templated at extended positions (unique tags)']:
         for group in selected_groups: 
-            species_graphs.append(generate_individual_graph_4(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color))
+            species_graphs.append(generate_individual_graph_4(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color, figures))
     elif selected_analysis_type in ['Nt characterisation at extended positions (%)', 'Nt characterisation at extended positions (unique tags)']:
         for group in selected_groups: 
             species_graphs.append(generate_individual_graph_5(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color))
@@ -634,15 +729,15 @@ def generate_species_graphs(selected_analysis_type, species, selected_groups, si
 def generate_graph_subplots(species_graphs, species, sizes):
     options = [{
         "label": [
-            species_graph
+            species_graph['figure']
         ],
-        "value": f'{species}_{i}'
+        "value": species_graph['id'],
 
-    } for i, species_graph in enumerate(species_graphs)]
+    } for species_graph in species_graphs]
 
     return dcc.Checklist(
-        id=f'{species}_graph_checklist',
-        className='species_graph_checklist',
+        id={'type': 'species-graph-checklist', 'index': species},
+        className='species-graph-checklist',
         options=options,
         value=[],
         labelStyle={
@@ -653,7 +748,7 @@ def generate_graph_subplots(species_graphs, species, sizes):
     )
 
 # Graph container card 
-def generate_graph_containers(selected_analysis_type, selected_species, selected_groups, selected_legend_items, legend_item_color): 
+def generate_graph_containers(selected_analysis_type, selected_species, selected_groups, selected_legend_items, legend_item_color, figures): 
     species_container_divs = []
 
     selected_species_len = len(selected_species)
@@ -662,7 +757,7 @@ def generate_graph_containers(selected_analysis_type, selected_species, selected
     sizes = calculate_sizes(selected_analysis_type, selected_species_len, selected_groups_len)
 
     for species in selected_species: 
-        species_graphs = generate_species_graphs(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color) 
+        species_graphs = generate_species_graphs(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color, figures) 
 
         species_container_divs.append(
             html.Div(
@@ -739,12 +834,32 @@ def get_legend_title(selected_analysis_type):
     else:
         return 'Variation type'
     
+def export_figures(selected_analysis_type, selected_figures, stored_figures):     
+    current_analysis_type_folders = [folder for folder in os.listdir(OUTPUT_PATH)
+        if os.path.isdir(os.path.join(OUTPUT_PATH, folder)) and folder.startswith(selected_analysis_type)]
+    
+    analysis_type_folder_path = f'{OUTPUT_PATH}/{selected_analysis_type}' if len(current_analysis_type_folders) == 0 else f'{OUTPUT_PATH}/{selected_analysis_type} ({len(current_analysis_type_folders)})'
+    os.makedirs(analysis_type_folder_path)
+
+    for selected_figure in selected_figures: 
+        selected_figure_names = selected_figure.split('-')
+        species = selected_figure_names[1]
+        group = selected_figure_names[2]
+        fig = stored_figures[selected_figure]
+        
+        figure_path = f'{analysis_type_folder_path}/{species}/{group}'
+        os.makedirs(figure_path)
+
+        fig.write_image(f'{figure_path}/Figure.svg', format='svg')
+
+
 # MAIN
 app.layout = html.Div(
     id="app-container",
     children=[
         # Storage 
         dcc.Store(id="legend-item-color"),
+        dcc.Store(id="stored-figures"),
         # Side bar
         html.Div(
             id="left-column",
@@ -832,6 +947,7 @@ def update_legend_checklist(selected_analysis_type, selected_species, selected_g
 
 @app.callback(
     Output('right-column', 'children'),
+    Output('stored-figures', 'data'),
     [
         Input('analysis-type-select', 'value'),
         Input('species-select', 'value'),
@@ -841,10 +957,70 @@ def update_legend_checklist(selected_analysis_type, selected_species, selected_g
     ],
 )
 def update_graphs(selected_analysis_type, selected_species, selected_groups, selected_legend_items, legend_item_color):
+    figures = {}
     if not selected_species or not selected_groups:
-        return []
-    return generate_graph_containers(selected_analysis_type, selected_species, selected_groups, selected_legend_items, legend_item_color)
+        return [], []
+    results = generate_graph_containers(selected_analysis_type, selected_species, selected_groups, selected_legend_items, legend_item_color, figures)
+    return results, figures
 
+@app.callback(
+    Output("modal", "is_open"),
+    [
+        Input('export-btn', 'n_clicks'),
+        Input("close", "n_clicks")
+    ],
+    [
+        State('analysis-type-select', 'value'),
+        State({'type': 'species-graph-checklist', 'index': ALL}, 'value'),
+        State('stored-figures', 'data'),
+        State("modal", "is_open")
+    ]
+)
+def export(n_clicks_open, n_clicks_close, selected_analysis_type, selected_figures, stored_figures, is_open):
+    # if not n_clicks:
+    #     return ""
+    # # TODO 
+    # return "all"
+
+    if n_clicks_open or n_clicks_close:
+        return not is_open
+    return is_open
+
+@app.callback(
+    Output('export-switch', 'disabled'),
+    Output('export-switch', 'on'),
+    Input('stored-figures', 'data'),
+    State('export-switch', 'on')
+)
+def disable_btn(stored_figures, export_on):
+    if not stored_figures:
+        return True, False
+    else: 
+        return False, export_on
+        
+
+@app.callback(
+    Output({'type': 'species-graph-checklist', 'index': ALL}, 'className'),
+    Output({'type': 'species-graph-checklist', 'index': ALL}, 'value'),
+    Output('export-folder-tree', 'style'),
+    Output('export-btn', 'style'),
+    [
+        Input('export-switch', 'on'),
+        Input('export-switch', 'disabled'),
+        State('species-select', 'value')
+    ]
+)
+def toggle_checklist(export_on, export_disabled,  selected_species):
+    export_folder_tree_style = {'display': 'block' if export_on else 'none'}
+    export_btn_style = {'display': 'block' if export_on else 'none'}
+    classes = []
+    values = []
+
+    if not export_disabled:
+        classes = ['species-graph-checklist' if export_on else 'species-graph-checklist export-off'] * len(selected_species)
+        values = [[] for _ in selected_species]
+    
+    return classes, values, export_folder_tree_style, export_btn_style
 
 # Run the server
 if __name__ == "__main__":
