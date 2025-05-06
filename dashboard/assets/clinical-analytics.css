@@ -1,3 +1,5 @@
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css");
+
 @font-face {
     font-family: Acumin;
     font-weight: bold;
@@ -153,7 +155,35 @@ input[type="checkbox"] {
     height: 0;
 }
 
-/* Label immediately after checkbox: color when NOT checked */
+.species-graph-checklist {
+    width: 100% !important;
+    height: calc(100% - 40px);
+    display: flex;
+    flex-direction: row
+}
+
+#export-toggle {
+    display: flex; 
+    justify-content: space-between;
+}
+
+#export-toggle > p {
+    font-weight: bold;
+}
+
+.eXmVai {
+    flex-direction: row !important;
+}
+
+.export-off > label > div {
+    opacity: 100% !important;
+}
+
+#export-successful {
+    color: #169873;
+}
+
+/* Legend styles */
 label:has(input[type="checkbox"]) {
     color: gray;
     cursor: pointer;
@@ -164,11 +194,11 @@ label:has(input[type="checkbox"]:checked) {
     color: black;
 }
 
-input[type="checkbox"] + .legend-indicator {
+input[type="checkbox"] + div {
     opacity: 50%;
 }
 
-input[type="checkbox"]:checked + .legend-indicator {
+input[type="checkbox"]:checked + div {
     opacity: 100%;
 }
 
@@ -184,6 +214,43 @@ input[type="checkbox"]:checked + .legend-indicator {
     overflow: hidden;
     text-overflow: ellipsis;
     display: block;
+}
+
+/* export folder tree */
+#export-folder-tree
+{
+    font-family: FontAwesome;
+    width: 300px;
+}
+.foldercontainer, .file, .noitems
+{
+    display: block;
+    padding: 5px 5px 5px 15px;
+}
+.folder
+{
+    color: black;
+}
+.file
+{
+    color: black;
+}
+.folder, .file
+{
+    cursor: pointer;
+}
+.noitems
+{
+    display: none;
+    pointer-events: none;
+}
+.folder:hover,.file:hover
+{
+    background: rgb(168, 252, 213);
+}
+.folder:before, .file:before
+{
+    padding-right: 10px;
 }
 
 /*
