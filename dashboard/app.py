@@ -88,8 +88,8 @@ templated_nontemplated_all_df = pd.concat(templated_nontemplated_all_list, ignor
 # Analysis type list, for dropdown 
 analysis_type_list = {
     "Canonical miRNAs & isomiRs (all groups)": canonical_isomirs_df, 
-    "IsomiR types (rpm)": isomir_types_df,
-    "IsomiR types (unique tags)": isomir_types_df, 
+    # "IsomiR types (rpm)": isomir_types_df,
+    # "IsomiR types (unique tags)": isomir_types_df, 
     "All isomiR types (charactised by nt)": isomir_types_nt_df,
     "3'isomiR types (charactised by nt)": isomir_types_nt_df,
     "5'isomiR types (charactised by nt)": isomir_types_nt_df,
@@ -160,63 +160,7 @@ def generate_control_card():
                     daq.BooleanSwitch(id='export-switch', on=False),
                 ]            
             ),
-            html.Div(
-                id="export-folder-tree",
-                children=[
-                    html.Div([
-                        html.Span("Folder 1", className="folder fa fa-folder-o", **{"data-isexpanded": "true"}),
-                        html.Span("File 11", className="file fa fa-file-excel-o"),
-                        html.Span("File 12", className="file fa fa-file-code-o"),
-                        html.Span("File 13", className="file fa fa-file-pdf-o"),
-                        html.Div([
-                            html.Span("Folder 1-1", className="folder fa fa-folder-o", **{"data-isexpanded": "true"}),
-                            html.Span("File 1-11", className="file fa fa-file-excel-o"),
-                            html.Span("File 1-12", className="file fa fa-file-code-o"),
-                            html.Span("File 1-13", className="file fa fa-file-pdf-o"),
-                        ], className="foldercontainer"),
-                        html.Div([
-                            html.Span("Folder 1-2", className="folder fa fa-folder"),
-                            html.Span("No Items", className="noitems")
-                        ], className="foldercontainer"),
-                        html.Div([
-                            html.Span("Folder 1-3", className="folder fa fa-folder"),
-                            html.Span("No Items", className="noitems")
-                        ], className="foldercontainer"),
-                        html.Div([
-                            html.Span("Folder 1-4", className="folder fa fa-folder"),
-                            html.Span("No Items", className="noitems")
-                        ], className="foldercontainer"),
-                    ], className="foldercontainer"),
-
-                    html.Div([
-                        html.Span("Folder 2", className="folder fa fa-folder-o", **{"data-isexpanded": "true"}),
-                        html.Span("File 21", className="file fa fa-file-excel-o"),
-                        html.Span("File 22", className="file fa fa-file-code-o"),
-                        html.Span("File 23", className="file fa fa-file-pdf-o"),
-                        html.Div([
-                            html.Span("Folder 2-1", className="folder fa fa-folder-o", **{"data-isexpanded": "true"}),
-                            html.Span("File 2-11", className="file fa fa-file-excel-o"),
-                            html.Span("File 2-12", className="file fa fa-file-code-o"),
-                            html.Span("File 2-13", className="file fa fa-file-pdf-o"),
-                            html.Div([
-                                html.Span("Folder 2-1-1", className="folder fa fa-folder"),
-                                html.Span("No Items", className="noitems")
-                            ], className="foldercontainer"),
-                        ], className="foldercontainer"),
-                    ], className="foldercontainer"),
-
-                    html.Div([
-                        html.Span("Folder 3", className="folder fa fa-folder-o", **{"data-isexpanded": "true"}),
-                        html.Span("File 31", className="file fa fa-file-excel-o"),
-                        html.Span("File 32", className="file fa fa-file-code-o"),
-                        html.Span("File 33", className="file fa fa-file-pdf-o"),
-                        html.Div([
-                            html.Span("Folder 3-1", className="folder fa fa-folder"),
-                            html.Span("No Items", className="noitems")
-                        ], className="foldercontainer")
-                    ], className="foldercontainer")
-                ]
-            ),
+            html.Div(id="export-folder-tree"),
             html.Button('Download', id='export-btn'),
             dbc.Modal(
                 [
@@ -288,7 +232,7 @@ def calculate_sizes(selected_analysis_type, selected_species_len, selected_group
 # Graphs generation
 #################
 # Graph 1 
-def generate_individual_graph_1(selected_analysis_type, species, groups, sizes, selected_legend_items, legend_item_color):
+def generate_individual_graph_1(selected_analysis_type, species, groups, sizes, selected_legend_items, legend_item_color, figures):
     # Load data
     data = analysis_type_list[selected_analysis_type]
     data = data[data['species'] == species]
@@ -344,13 +288,20 @@ def generate_individual_graph_1(selected_analysis_type, species, groups, sizes, 
         gridcolor='lightgrey'
     )
 
-    return dcc.Graph(
-        figure=fig, 
-        config={'displayModeBar': False}, 
-        style={
-            "width": "100%", 
-            "height": "100%"
-    })
+    # Figure name 
+    fig_name = f'{selected_analysis_type}:{species}:{"_".join(groups)}'
+    figures[fig_name] = fig
+
+    return  {
+        'id': fig_name,
+        'figure': dcc.Graph(
+            figure=fig, 
+            config={'displayModeBar': False}, 
+            style={
+                "width": "100%", 
+                "height": "100%"
+            })
+        }
 
 # Graph 2 
 def generate_individual_graph_2(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color):
@@ -378,7 +329,7 @@ def generate_individual_graph_2(selected_analysis_type, species, group, sizes, s
     })
 
 # Graph 3 
-def generate_individual_graph_3(selected_analysis_type, species, groups, sizes, selected_legend_items, legend_item_color):
+def generate_individual_graph_3(selected_analysis_type, species, groups, sizes, selected_legend_items, legend_item_color, figures):
     # Load data 
     data = analysis_type_list[selected_analysis_type]
     data = data[data['species'] == species]
@@ -446,13 +397,20 @@ def generate_individual_graph_3(selected_analysis_type, species, groups, sizes, 
         gridcolor='lightgrey'
     )
     
-    return dcc.Graph(
-        figure=fig, 
-        config={'displayModeBar': False}, 
-        style={
-            "width": "100%", 
-            "height": "100%"
-    })
+    # Figure name 
+    fig_name = f'{selected_analysis_type}:{species}:{"_".join(groups)}'
+    figures[fig_name] = fig
+
+    return  {
+        'id': fig_name,
+        'figure': dcc.Graph(
+            figure=fig, 
+            config={'displayModeBar': False}, 
+            style={
+                "width": "100%", 
+                "height": "100%"
+            })
+        }
 
 # Graph 4 
 def generate_individual_graph_4(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color, figures):
@@ -539,7 +497,7 @@ def generate_individual_graph_4(selected_analysis_type, species, group, sizes, s
         }
 
 # Graph 5
-def generate_individual_graph_5(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color):
+def generate_individual_graph_5(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color, figures):
     # Load data
     data = analysis_type_list[selected_analysis_type]
     data = data[data['species'] == species]
@@ -611,17 +569,23 @@ def generate_individual_graph_5(selected_analysis_type, species, group, sizes, s
         linecolor='black',
         gridcolor='lightgrey'
     )
-    
-    return dcc.Graph(
-        figure=fig, 
-        config={'displayModeBar': False}, 
-        style={
-            "width": "100%", 
-            "height": "100%"
-        })
+
+    fig_name = f'{selected_analysis_type}:{species}:{group}'
+    figures[fig_name] = fig
+
+    return  {
+        'id': fig_name,
+        'figure': dcc.Graph(
+            figure=fig, 
+            config={'displayModeBar': False}, 
+            style={
+                "width": "100%", 
+                "height": "100%"
+            })
+        }
 
 # Graph 6
-def generate_individual_graph_6(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color):
+def generate_individual_graph_6(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color, figures):
     # Load data
     data = analysis_type_list[selected_analysis_type]
     data = data[data['species'] == species]
@@ -685,15 +649,20 @@ def generate_individual_graph_6(selected_analysis_type, species, group, sizes, s
         linecolor='black',
         gridcolor='lightgrey'
     )
+    
+    fig_name = f'{selected_analysis_type}:{species}:{group}'
+    figures[fig_name] = fig
 
-    # Show figure
-    return dcc.Graph(
-        figure=fig, 
-        config={'displayModeBar': False}, 
-        style={
-            "width": "100%", 
-            "height": "100%"
-        })
+    return  {
+        'id': fig_name,
+        'figure': dcc.Graph(
+            figure=fig, 
+            config={'displayModeBar': False}, 
+            style={
+                "width": "100%", 
+                "height": "100%"
+            })
+        }
 
 
 # Graphs for a species of a type
@@ -702,21 +671,21 @@ def generate_species_graphs(selected_analysis_type, species, selected_groups, si
     species_graphs = []
     
     if selected_analysis_type == 'Canonical miRNAs & isomiRs (all groups)':
-        species_graphs.append(generate_individual_graph_1(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color))
+        species_graphs.append(generate_individual_graph_1(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color, figures))
     elif selected_analysis_type in ['IsomiR types (rpm)', 'IsomiR types (unique tags)']:
         for group in selected_groups: 
-            species_graphs.append(generate_individual_graph_2(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color))
+            species_graphs.append(generate_individual_graph_2(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color, figures))
     elif selected_analysis_type in ['All isomiR types (charactised by nt)', "3'isomiR types (charactised by nt)", "5'isomiR types (charactised by nt)"]:
-        species_graphs.append(generate_individual_graph_3(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color))
+        species_graphs.append(generate_individual_graph_3(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color, figures))
     elif selected_analysis_type in ["Templated vs Non-templated at extended positions (%)", 'Templated vs Non-templated at extended positions (unique tags)']:
         for group in selected_groups: 
             species_graphs.append(generate_individual_graph_4(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color, figures))
     elif selected_analysis_type in ['Nt characterisation at extended positions (%)', 'Nt characterisation at extended positions (unique tags)']:
         for group in selected_groups: 
-            species_graphs.append(generate_individual_graph_5(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color))
+            species_graphs.append(generate_individual_graph_5(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color, figures))
     elif selected_analysis_type == 'Templated vs Non-templated at all positions':
         for group in selected_groups: 
-            species_graphs.append(generate_individual_graph_6(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color))
+            species_graphs.append(generate_individual_graph_6(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color, figures))
 
     return species_graphs
 
@@ -830,6 +799,9 @@ def get_legend_title(selected_analysis_type):
         return 'Variation type'
     
 def export_figures(selected_analysis_type, selected_figures, stored_figures): 
+    if not os.path.exists(OUTPUT_PATH):
+        os.makedirs(OUTPUT_PATH)
+
     if stored_figures and selected_figures:    
         current_analysis_type_folders = [folder for folder in os.listdir(OUTPUT_PATH)
             if os.path.isdir(os.path.join(OUTPUT_PATH, folder)) and folder.startswith(selected_analysis_type)]
@@ -848,7 +820,31 @@ def export_figures(selected_analysis_type, selected_figures, stored_figures):
                 os.makedirs(figure_path)
                 pio.write_image(fig, f'{figure_path}/Figure.svg', format='svg')
 
+def generate_folder_tree(selected_analysis_type, selected_figures):
 
+    species_subfolders = []
+    for selected_figure_set in selected_figures:
+        if len(selected_figure_set) > 0:
+            species = selected_figure_set[0].split(":")[1]
+            group_subfolders = []
+            
+            for selected_figure in selected_figure_set: 
+                group = selected_figure.split(":")[2]
+                group_subfolders.append(
+                    html.Div([html.Span(group, className="folder fa fa-folder-o"), html.Span("Figure.svg", className="file fa fa-file-excel-o")], className="foldercontainer")
+                )
+            species_subfolders.append(
+                html.Div([html.Span(species, className="folder fa fa-folder-o")] + group_subfolders, className="foldercontainer")
+            )
+    
+    return [
+        html.Div(
+            [
+                html.Span(selected_analysis_type, className="folder fa fa-folder-o", **{"data-isexpanded": "true"}),
+            ] + species_subfolders, 
+            className="foldercontainer")
+    ]
+        
 # MAIN
 app.layout = html.Div(
     id="app-container",
@@ -954,7 +950,7 @@ def update_legend_checklist(selected_analysis_type, selected_species, selected_g
 )
 def update_graphs(selected_analysis_type, selected_species, selected_groups, selected_legend_items, legend_item_color):
     figures = {}
-    if not selected_species or not selected_groups:
+    if not selected_species or not selected_groups or not selected_analysis_type:
         return [], []
     results = generate_graph_containers(selected_analysis_type, selected_species, selected_groups, selected_legend_items, legend_item_color, figures)
     return results, figures
@@ -1019,12 +1015,25 @@ def toggle_checklist(export_on, export_disabled,  selected_species):
     classes = []
     values = []
 
-    if not export_disabled:
+    if not export_disabled and selected_species:
         classes = ['species-graph-checklist' if export_on else 'species-graph-checklist export-off'] * len(selected_species)
         values = [[] for _ in selected_species]
     
     return classes, values, export_folder_tree_style, export_btn_style
 
+@app.callback(
+    Output('export-folder-tree', 'children'),
+    [
+        Input('export-switch', 'on'),
+        Input({'type': 'species-graph-checklist', 'index': ALL}, 'value'),
+        State('analysis-type-select', 'value')
+    ]
+)
+def show_folder_tree(export_on, selected_figures, selected_analysis_type):
+    if export_on == True: 
+        return generate_folder_tree(selected_analysis_type, selected_figures)
+    return []
+        
 # Run the server
 if __name__ == "__main__":
     app.run(debug=True)    
