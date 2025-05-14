@@ -88,8 +88,8 @@ templated_nontemplated_all_df = pd.concat(templated_nontemplated_all_list, ignor
 # Analysis type list, for dropdown 
 analysis_type_list = {
     "Canonical miRNAs & isomiRs (all groups)": canonical_isomirs_df, 
-    # "IsomiR types (rpm)": isomir_types_df,
-    # "IsomiR types (unique tags)": isomir_types_df, 
+    "IsomiR types (rpm)": isomir_types_df,
+    "IsomiR types (unique tags)": isomir_types_df, 
     "All isomiR types (charactised by nt)": isomir_types_nt_df,
     "3'isomiR types (charactised by nt)": isomir_types_nt_df,
     "5'isomiR types (charactised by nt)": isomir_types_nt_df,
@@ -160,6 +160,11 @@ def generate_control_card():
                     daq.BooleanSwitch(id='export-switch', on=False),
                 ]            
             ),
+            dcc.Dropdown(
+                id="select-export-format",
+                options=[{"label": v, "value": v} for v in ['svg', 'jpeg', 'pdf']],
+                value='svg'
+            ),
             html.Div(id="export-folder-tree"),
             html.Button('Download', id='export-btn'),
             dbc.Modal(
@@ -172,7 +177,7 @@ def generate_control_card():
                 ],
                 id="modal",
                 is_open=False,
-            ),
+            )
         ],
     )
 
@@ -304,7 +309,7 @@ def generate_individual_graph_1(selected_analysis_type, species, groups, sizes, 
         }
 
 # Graph 2 
-def generate_individual_graph_2(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color):
+def generate_individual_graph_2(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color, figures):
     # Load data
     data = analysis_type_list[selected_analysis_type]
     data = data[data['species'] == species]
@@ -317,16 +322,45 @@ def generate_individual_graph_2(selected_analysis_type, species, group, sizes, s
         value_type = 'rpm'
     else:
         value_type = 'unique_tag' 
+    
+    fig = px.pie(
+        data,
+        values=value_type,
+        names='grouped_type',
+        color='grouped_type',
+        color_discrete_map=legend_item_color
+    )
 
-    fig = px.pie(data, values=value_type, names='grouped_type', color='grouped_type',
-                color_discrete_map=legend_item_color)
-    return dcc.Graph(
-        figure=fig, 
-        config={'displayModeBar': False}, 
-        style={
-            "width": "100%", 
-            "height": "100%"
-    })
+    fig.update_traces(
+        textposition='outside',
+        insidetextorientation='radial',
+        pull=[0]*len(data),  # ensure no slice is pulled out
+        showlegend=False
+    )
+
+    fig.update_layout(
+        autosize=True,
+        margin=dict(pad=10, t=20, b=0, l=2, r=20),
+        uniformtext_minsize=10,
+        uniformtext_mode='hide',  # prevents text overlap
+        plot_bgcolor='white'
+    )
+
+    # Figure name 
+    fig_name = f'{selected_analysis_type}:{species}:{group}'
+    figures[fig_name] = fig
+
+    return  {
+        'id': fig_name,
+        'figure': dcc.Graph(
+            figure=fig, 
+            config={'displayModeBar': False},
+            style={
+                "width": "100%", 
+                "height": "100%"
+            }
+        )
+    }
 
 # Graph 3 
 def generate_individual_graph_3(selected_analysis_type, species, groups, sizes, selected_legend_items, legend_item_color, figures):
@@ -798,7 +832,7 @@ def get_legend_title(selected_analysis_type):
     else:
         return 'Variation type'
     
-def export_figures(selected_analysis_type, selected_figures, stored_figures): 
+def export_figures(selected_analysis_type, selected_figures, stored_figures, selected_format): 
     if not os.path.exists(OUTPUT_PATH):
         os.makedirs(OUTPUT_PATH)
 
@@ -818,7 +852,7 @@ def export_figures(selected_analysis_type, selected_figures, stored_figures):
             
                 figure_path = f'{analysis_type_folder_path}/{species}/{group}'
                 os.makedirs(figure_path)
-                pio.write_image(fig, f'{figure_path}/Figure.svg', format='svg')
+                pio.write_image(fig, f'{figure_path}/Figure.{selected_format}', format=selected_format)
 
 def generate_folder_tree(selected_analysis_type, selected_figures):
 
@@ -961,14 +995,14 @@ def update_graphs(selected_analysis_type, selected_species, selected_groups, sel
         Input('export-btn', 'n_clicks'),
         Input("close", "n_clicks")
     ],
-    [
+    [   State('select-export-format', 'value'),
         State('analysis-type-select', 'value'),
         State({'type': 'species-graph-checklist', 'index': ALL}, 'value'),
         State('stored-figures', 'data'),
         State("modal", "is_open")
     ]
 )
-def export(n_clicks_open, n_clicks_close, selected_analysis_type, selected_figures, stored_figures, is_open):
+def export(n_clicks_open, n_clicks_close, selected_format, selected_analysis_type, selected_figures, stored_figures, is_open):
     ctx = callback_context  # or `ctx = ctx` if using Dash 2.4+
 
     if not ctx.triggered:
@@ -977,7 +1011,7 @@ def export(n_clicks_open, n_clicks_close, selected_analysis_type, selected_figur
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
     if triggered_id == 'export-btn':
-        export_figures(selected_analysis_type, selected_figures, stored_figures)
+        export_figures(selected_analysis_type, selected_figures, stored_figures, selected_format)
         return not is_open
 
     elif triggered_id == 'close':
@@ -1003,6 +1037,7 @@ def disable_btn(stored_figures, export_on):
     Output({'type': 'species-graph-checklist', 'index': ALL}, 'value'),
     Output('export-folder-tree', 'style'),
     Output('export-btn', 'style'),
+    Output('select-export-format','style'),
     [
         Input('export-switch', 'on'),
         Input('export-switch', 'disabled'),
@@ -1012,6 +1047,7 @@ def disable_btn(stored_figures, export_on):
 def toggle_checklist(export_on, export_disabled,  selected_species):
     export_folder_tree_style = {'display': 'block' if export_on else 'none'}
     export_btn_style = {'display': 'block' if export_on else 'none'}
+    select_export_format_style = {'display': 'block' if export_on else 'none'}
     classes = []
     values = []
 
@@ -1019,7 +1055,7 @@ def toggle_checklist(export_on, export_disabled,  selected_species):
         classes = ['species-graph-checklist' if export_on else 'species-graph-checklist export-off'] * len(selected_species)
         values = [[] for _ in selected_species]
     
-    return classes, values, export_folder_tree_style, export_btn_style
+    return classes, values, export_folder_tree_style, export_btn_style, select_export_format_style
 
 @app.callback(
     Output('export-folder-tree', 'children'),
@@ -1036,9 +1072,4 @@ def show_folder_tree(export_on, selected_figures, selected_analysis_type):
         
 # Run the server
 if __name__ == "__main__":
-    app.run(debug=True)    
-
-        
-
-
-
+    app.run(debug=True)
