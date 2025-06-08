@@ -86,6 +86,7 @@ templated_nontemplated_all_df = pd.concat(templated_nontemplated_all_list, ignor
 
 # Map analysis type with dataframe
 # Analysis type list, for dropdown 
+# TODO 
 analysis_type_list = {
     "Canonical miRNAs & isomiRs (all groups)": canonical_isomirs_df, 
     "IsomiR types (rpm)": isomir_types_df,
@@ -133,6 +134,16 @@ def generate_control_card():
                 options=[{"label": i, "value": i} for i in analysis_type_list.keys()],
             ),
             html.Br(),
+            
+            html.Div(id='graph-type-container', children=[
+                html.P("Select type of graph"),
+                dcc.Dropdown(
+                    id="graph-type-select",
+                    options=[{"label": i, "value": i} for i in ['pie', 'bar']]
+                ),
+                html.Br()
+            ]),
+            
             html.P("Select species"),
             dcc.Dropdown(
                 id="species-select",
@@ -160,13 +171,18 @@ def generate_control_card():
                     daq.BooleanSwitch(id='export-switch', on=False),
                 ]            
             ),
-            dcc.Dropdown(
-                id="select-export-format",
-                options=[{"label": v, "value": v} for v in ['svg', 'jpeg', 'pdf']],
-                value='svg'
-            ),
-            html.Div(id="export-folder-tree"),
-            html.Button('Download', id='export-btn'),
+
+            html.Div(id='export-container', children=[
+                dcc.Dropdown(
+                    id="select-export-format",
+                    options=[{"label": v, "value": v} for v in ['svg', 'jpeg', 'pdf']],
+                    value='svg'
+                ),
+                html.Div(id="export-folder-tree"),
+                html.Button('Download', id='export-btn')
+            ]),
+
+
             dbc.Modal(
                 [
                     dbc.ModalHeader(dbc.ModalTitle("Export")),
@@ -208,7 +224,7 @@ def calculate_sizes(selected_analysis_type, selected_species_len, selected_group
     graph_subplot_width = ""
     graph_subplot_height = "100%"
 
-    if selected_groups_len == 1 or selected_analysis_type in ["Canonical miRNAs & isomiRs (all groups)", "All isomiR types (charactised by nt)",  "3'isomiR types (charactised by nt)", "5'isomiR types (charactised by nt)"]: 
+    if selected_groups_len == 1 or selected_analysis_type in ["Canonical miRNAs & isomiRs (all groups)", "All isomiR types (charactised by nt)",  "3'isomiR types (charactised by nt)", "5'isomiR types (charactised by nt)", "IsomiR types (rpm)", "IsomiR types (unique tags)"]: 
         if graph_number == 1:  
             graph_container_width = "100%"
             graph_container_height = "100%"
@@ -309,7 +325,7 @@ def generate_individual_graph_1(selected_analysis_type, species, groups, sizes, 
         }
 
 # Graph 2 
-def generate_individual_graph_2(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color, figures):
+def generate_individual_graph_2_pie(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color, figures):
     # Load data
     data = analysis_type_list[selected_analysis_type]
     data = data[data['species'] == species]
@@ -361,6 +377,92 @@ def generate_individual_graph_2(selected_analysis_type, species, group, sizes, s
             }
         )
     }
+
+# Graph 2 
+def generate_individual_graph_2_bar(selected_analysis_type, species, groups, sizes, selected_legend_items, legend_item_color, figures):
+    # Load data
+    data = analysis_type_list[selected_analysis_type]
+    data = data[data['species'] == species]
+    data = data[data['group'].isin(groups)]
+    data = data[data['grouped_type'].isin(selected_legend_items)]
+
+    # Value type
+    value_type = ''
+    if selected_analysis_type == 'IsomiR types (rpm)': 
+        value_type = 'rpm'
+        data['percentage'] = data.groupby('group')['rpm'].transform(lambda x: (x / x.sum()) * 100)
+    else:
+        value_type = 'unique_tag' 
+        data['percentage'] = data.groupby('group')['unique_tag'].transform(lambda x: (x / x.sum()) * 100)
+
+
+    # Create stacked bar chart
+    fig = go.Figure()
+
+    # Create traces 
+    traces = []
+
+    # Group records by grouped_type
+    df_grouped = data.groupby('grouped_type')
+    for grouped_type, group in df_grouped:
+        traces.append(go.Bar(
+            x=group['group'],
+            y=group['percentage'],
+            name=grouped_type,
+            marker=dict(color=legend_item_color.get(grouped_type, '#636EFA')),
+        ))
+
+    # Create the figure
+    fig = go.Figure(traces)
+
+    # Update layout
+    fig.update_layout(
+        autosize=True,
+        margin=dict(
+            pad=10,
+            t=20,
+            b=0,
+            l=2,
+            r=20
+        ),
+        yaxis=dict(title='<b>Percentage</b>', ticksuffix='%'),
+        xaxis=dict(title=''),
+        barmode='stack',
+        plot_bgcolor='white',
+        showlegend=False
+    )
+
+    # Update x axis 
+    fig.update_xaxes(
+        mirror=True,
+        ticks='outside',
+        showline=True,
+        linecolor='black',
+    )
+
+    # Update y axis
+    fig.update_yaxes(
+        mirror=True,
+        ticks='outside',
+        showline=True,
+        linecolor='black',
+        gridcolor='lightgrey'
+    )
+    
+    # Figure name 
+    fig_name = f'{selected_analysis_type}:{species}:{"_".join(groups)}'
+    figures[fig_name] = fig
+
+    return  {
+        'id': fig_name,
+        'figure': dcc.Graph(
+            figure=fig, 
+            config={'displayModeBar': False}, 
+            style={
+                "width": "100%", 
+                "height": "100%"
+            })
+        }
 
 # Graph 3 
 def generate_individual_graph_3(selected_analysis_type, species, groups, sizes, selected_legend_items, legend_item_color, figures):
@@ -700,15 +802,18 @@ def generate_individual_graph_6(selected_analysis_type, species, group, sizes, s
 
 
 # Graphs for a species of a type
-def generate_species_graphs(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color, figures):
+def generate_species_graphs(selected_analysis_type, selected_graph_type, species, selected_groups, sizes, selected_legend_items, legend_item_color, figures):
    
     species_graphs = []
     
     if selected_analysis_type == 'Canonical miRNAs & isomiRs (all groups)':
         species_graphs.append(generate_individual_graph_1(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color, figures))
     elif selected_analysis_type in ['IsomiR types (rpm)', 'IsomiR types (unique tags)']:
-        for group in selected_groups: 
-            species_graphs.append(generate_individual_graph_2(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color, figures))
+        if selected_graph_type == "bar":
+            species_graphs.append(generate_individual_graph_2_bar(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color, figures))
+        else: 
+            for group in selected_groups: 
+                species_graphs.append(generate_individual_graph_2_pie(selected_analysis_type, species, group, sizes, selected_legend_items, legend_item_color, figures))
     elif selected_analysis_type in ['All isomiR types (charactised by nt)', "3'isomiR types (charactised by nt)", "5'isomiR types (charactised by nt)"]:
         species_graphs.append(generate_individual_graph_3(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color, figures))
     elif selected_analysis_type in ["Templated vs Non-templated at extended positions (%)", 'Templated vs Non-templated at extended positions (unique tags)']:
@@ -746,7 +851,7 @@ def generate_graph_subplots(species_graphs, species, sizes):
     )
 
 # Graph container card 
-def generate_graph_containers(selected_analysis_type, selected_species, selected_groups, selected_legend_items, legend_item_color, figures): 
+def generate_graph_containers(selected_analysis_type, selected_graph_type, selected_species, selected_groups, selected_legend_items, legend_item_color, figures): 
     species_container_divs = []
 
     selected_species_len = len(selected_species)
@@ -755,7 +860,7 @@ def generate_graph_containers(selected_analysis_type, selected_species, selected
     sizes = calculate_sizes(selected_analysis_type, selected_species_len, selected_groups_len)
 
     for species in selected_species: 
-        species_graphs = generate_species_graphs(selected_analysis_type, species, selected_groups, sizes, selected_legend_items, legend_item_color, figures) 
+        species_graphs = generate_species_graphs(selected_analysis_type, selected_graph_type, species, selected_groups, sizes, selected_legend_items, legend_item_color, figures) 
 
         species_container_divs.append(
             html.Div(
@@ -854,7 +959,7 @@ def export_figures(selected_analysis_type, selected_figures, stored_figures, sel
                 os.makedirs(figure_path)
                 pio.write_image(fig, f'{figure_path}/Figure.{selected_format}', format=selected_format)
 
-def generate_folder_tree(selected_analysis_type, selected_figures):
+def generate_folder_tree(selected_analysis_type, selected_figures, selected_graph_type):
 
     species_subfolders = []
     for selected_figure_set in selected_figures:
@@ -865,7 +970,7 @@ def generate_folder_tree(selected_analysis_type, selected_figures):
             for selected_figure in selected_figure_set: 
                 group = selected_figure.split(":")[2]
                 group_subfolders.append(
-                    html.Div([html.Span(group, className="folder fa fa-folder-o"), html.Span("Figure.svg", className="file fa fa-file-excel-o")], className="foldercontainer")
+                    html.Div([html.Span(group, className="folder fa fa-folder-o"), html.Span(f"Figure.svg", className="file fa fa-file-excel-o")], className="foldercontainer")
                 )
             species_subfolders.append(
                 html.Div([html.Span(species, className="folder fa fa-folder-o")] + group_subfolders, className="foldercontainer")
@@ -976,17 +1081,22 @@ def update_legend_checklist(selected_analysis_type, selected_species, selected_g
     Output('stored-figures', 'data'),
     [
         Input('analysis-type-select', 'value'),
+        Input('graph-type-select', 'value'),
         Input('species-select', 'value'),
         Input('group-select', 'value'),
         Input('legend-checklist', 'value'),
         Input('legend-item-color', 'data')
     ],
 )
-def update_graphs(selected_analysis_type, selected_species, selected_groups, selected_legend_items, legend_item_color):
+def update_graphs(selected_analysis_type, selected_graph_type, selected_species, selected_groups, selected_legend_items, legend_item_color):
     figures = {}
     if not selected_species or not selected_groups or not selected_analysis_type:
         return [], []
-    results = generate_graph_containers(selected_analysis_type, selected_species, selected_groups, selected_legend_items, legend_item_color, figures)
+
+    if selected_analysis_type in ["IsomiR types (rpm)", "IsomiR types (unique tags)"] and not selected_graph_type:
+        return [], []
+        
+    results = generate_graph_containers(selected_analysis_type, selected_graph_type, selected_species, selected_groups, selected_legend_items, legend_item_color, figures)
     return results, figures
 
 @app.callback(
@@ -1010,7 +1120,7 @@ def export(n_clicks_open, n_clicks_close, selected_format, selected_analysis_typ
 
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-    if triggered_id == 'export-btn':
+    if triggered_id == 'export-btn' and selected_format:
         export_figures(selected_analysis_type, selected_figures, stored_figures, selected_format)
         return not is_open
 
@@ -1035,9 +1145,7 @@ def disable_btn(stored_figures, export_on):
 @app.callback(
     Output({'type': 'species-graph-checklist', 'index': ALL}, 'className'),
     Output({'type': 'species-graph-checklist', 'index': ALL}, 'value'),
-    Output('export-folder-tree', 'style'),
-    Output('export-btn', 'style'),
-    Output('select-export-format','style'),
+    Output('export-container', 'style'),
     [
         Input('export-switch', 'on'),
         Input('export-switch', 'disabled'),
@@ -1045,9 +1153,7 @@ def disable_btn(stored_figures, export_on):
     ]
 )
 def toggle_checklist(export_on, export_disabled,  selected_species):
-    export_folder_tree_style = {'display': 'block' if export_on else 'none'}
-    export_btn_style = {'display': 'block' if export_on else 'none'}
-    select_export_format_style = {'display': 'block' if export_on else 'none'}
+    export_container_style = {'display': 'block' if export_on else 'none'}
     classes = []
     values = []
 
@@ -1055,21 +1161,33 @@ def toggle_checklist(export_on, export_disabled,  selected_species):
         classes = ['species-graph-checklist' if export_on else 'species-graph-checklist export-off'] * len(selected_species)
         values = [[] for _ in selected_species]
     
-    return classes, values, export_folder_tree_style, export_btn_style, select_export_format_style
+    return classes, values, export_container_style
 
 @app.callback(
     Output('export-folder-tree', 'children'),
     [
         Input('export-switch', 'on'),
         Input({'type': 'species-graph-checklist', 'index': ALL}, 'value'),
+        Input('graph-type-select', 'value'),
         State('analysis-type-select', 'value')
     ]
 )
-def show_folder_tree(export_on, selected_figures, selected_analysis_type):
+def show_folder_tree(export_on, selected_figures, selected_graph_type, selected_analysis_type):
     if export_on == True: 
-        return generate_folder_tree(selected_analysis_type, selected_figures)
+        return generate_folder_tree(selected_analysis_type, selected_figures, selected_graph_type)
     return []
         
+@app.callback(
+    Output('graph-type-container', 'style'),
+    Input('analysis-type-select', 'value'),
+)
+def show_graph_type_select(selected_analysis_type):
+    if selected_analysis_type in ["IsomiR types (rpm)", "IsomiR types (unique tags)"]:
+        return {'display': 'block'}
+    else: 
+        return {'display': 'none'}
+
+
 # Run the server
 if __name__ == "__main__":
     app.run(debug=True)

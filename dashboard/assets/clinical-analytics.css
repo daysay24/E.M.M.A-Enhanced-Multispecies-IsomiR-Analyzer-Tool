@@ -183,6 +183,10 @@ input[type="checkbox"] {
     color: #169873;
 }
 
+#graph-type-container > p {
+    font-weight: bold;
+}
+
 /* Legend styles */
 label:has(input[type="checkbox"]) {
     color: gray;
