@@ -7,10 +7,10 @@ mmu,Mus musculus,14hr
 mmu,Mus musculus,18hr
 mmu,Mus musculus,20hr
 mmu,Mus musculus,24hr
-sjap,Schistosoma Japonicum,14hr
-sjap,Schistosoma Japonicum,18hr
-sjap,Schistosoma Japonicum,20hr
-sjap,Schistosoma Japonicum,24hr
+s.jap,Schistosoma Japonicum,14hr
+s.jap,Schistosoma Japonicum,18hr
+s.jap,Schistosoma Japonicum,20hr
+s.jap,Schistosoma Japonicum,24hr
 dan,Drosophila Ananassae,14hr
 dan,Drosophila Ananassae,18hr
 dan,Drosophila Ananassae,20hr

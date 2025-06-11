@@ -20,6 +20,7 @@ def snp_count(mir_seq: str, tag_seq: str, begin_ungapped_mirna: int, begin_ungap
     -------
     int 
         The number of snps found in an isomiR. 
+        The string that describes position and nt of snps. 
     """
     snp_count = 0
     mir_seq_nts = list(mir_seq)
@@ -31,22 +32,28 @@ def snp_count(mir_seq: str, tag_seq: str, begin_ungapped_mirna: int, begin_ungap
     mirna_aligned_start = begin_ungapped_mirna - min(begin_ungapped_mirna, begin_ungapped_tag)
     # tag position where tag is first aligned to mirna even if mismatch
     tag_aligned_start = begin_ungapped_tag - min(begin_ungapped_mirna, begin_ungapped_tag)
+    # snp description 
+    snp_desc = ''
     
     while mirna_aligned_start < mir_seq_len and tag_aligned_start < tag_seq_len:
         if mir_seq_nts[mirna_aligned_start] != tag_seq_nts[tag_aligned_start]:
             snp_count += 1
+            snp_desc += f"{mirna_aligned_start + 1}{tag_seq_nts[tag_aligned_start]}"
+
         mirna_aligned_start += 1
         tag_aligned_start += 1
     
-    return snp_count
+    return snp_count, snp_desc
 
-def get_type_name(mir_name: str, nt_diff_5p: int, nt_snp: int, nt_diff_3p: int):    
+def get_type_name(mir_name: str, tag_seq: str, nt_diff_5p: int, nt_snp: int, snp_desc: str,  nt_diff_3p: int):    
     """Get the variant type and name of an isomiR.
 
     Parameters
     ----------
     mir_name: str
         Name of its canonical miRNA. 
+    tag_seq: str 
+        Sequence of the isomiR. 
     nt_diff_5p: int
         The number of nucleotide added to / trimmed from the 5' of the canonical. 
         - nt_diff_5p = 0 (no addition/trimming)
@@ -75,21 +82,21 @@ def get_type_name(mir_name: str, nt_diff_5p: int, nt_snp: int, nt_diff_3p: int):
         return 'mirna_exact', mir_name
 
     if nt_diff_5p > 0: 
-        name.append(f"5'+{nt_diff_5p}")
+        name.append(f"5'+{nt_diff_5p}:{tag_seq[:nt_diff_5p]}")
         type.append('iso_5p')
     elif nt_diff_5p < 0: 
         name.append(f"5'{nt_diff_5p}")
         type.append('iso_5p')
 
     if nt_snp > 1: 
-        name.append(f"snp+{nt_snp}")
+        name.append(f"snp+{nt_snp}:{snp_desc}")
         type.append('iso_multi_snp')  
     elif nt_snp == 1: 
-        name.append(f"snp+{nt_snp}")
+        name.append(f"snp+{nt_snp}:{snp_desc}")
         type.append('iso_snp')  
         
     if nt_diff_3p > 0: 
-        name.append(f"3'+{nt_diff_3p}")
+        name.append(f"3'+{nt_diff_3p}:{tag_seq[-nt_diff_3p:]}")
         type.append('iso_3p')
     elif nt_diff_3p < 0: 
         name.append(f"3'{nt_diff_3p}")
@@ -119,8 +126,8 @@ def add_columns(row: pd.Series):
     """
     nt_diff_5p = row['begin_ungapped_tag'] - row['begin_ungapped_mirna']
     nt_diff_3p = - row['mir_tag_size_diff'] - nt_diff_5p
-    nt_snp = snp_count(row['mirna_seq'], row['tag_sequence'], row['begin_ungapped_mirna'], row['begin_ungapped_tag'])
-    type, name = get_type_name(row['mirna_name'], nt_diff_5p, nt_snp, nt_diff_3p)
+    nt_snp, snp_desc = snp_count(row['mirna_seq'], row['tag_sequence'], row['begin_ungapped_mirna'], row['begin_ungapped_tag'])
+    type, name = get_type_name(row['mirna_name'], row['tag_sequence'],  nt_diff_5p, nt_snp, snp_desc, nt_diff_3p)
 
     return pd.Series([nt_diff_5p, nt_snp, nt_diff_3p, type, name])
 

@@ -3,35 +3,24 @@
 # Delete all .DS_store files 
 find . -name ".DS_Store" -type f -delete
 
-# Create an output folder if not exist. If already exist, delete all files 
-path_output_folder='./output'
-# Check if the output directory exists
-if [ -d "$path_output_folder" ]; then
-  # If it exists, delete all files inside it
-  rm -rf "${path_output_folder:?}"/*
-else
-  # If it does not exist, create the directory
-  mkdir "$path_output_folder"
-fi
-
 # Paths 
 path_genomic_file=./test/s.jap/s.jap.fa # change this if necessary
 path_coords_file=./test/s.jap/s.jap.xlsx # change this if necessary
 path_raw_output_folder=./test/s.jap/isomiR-SEA_outputs # change this if necessary
-path_summarised_output_folder=./output/1_summarised_isomiRs
-path_avg_replicate_output_folder=./output/2_avg_replicate_isomiRs
-path_precursors_output_folder=./output/3_precursors
-path_nt_templated_alignment_output_folder=./output/4_nt_templated_alignment
-path_nt_alignment_output_folder=./output/5_nt_alignment
-path_templated_alignment_output_folder=./output/5_templated_alignment
-path_summarised_nt_alignment_output_folder=./output/6_summarised_nt_alignment
-path_summarised_templated_alignment_output_folder=./output/6_summarised_templated_alignment
-path_summarised_templated_alignment_all_output_folder=./output/6_summarised_templated_alignment_all
-path_avg_summarised_nt_alignment_output_folder=./output/7_avg_summarised_nt_alignment
-path_avg_summarised_templated_alignment_output_folder=./output/7_avg_summarised_templated_alignment
-path_avg_summarised_templated_alignment_all_output_folder=./output/7_avg_summarised_templated_alignment_all
-path_graph_processed_data_folder=./output/8_graph_processed_data/
-path_graphs_folder=./output/graphs/
+path_summarised_output_folder=./output/s.jap/1_summarised_isomiRs
+path_avg_replicate_output_folder=./output/s.jap/2_avg_replicate_isomiRs
+path_precursors_output_folder=./output/s.jap/3_precursors
+path_nt_templated_alignment_output_folder=./output/s.jap/4_nt_templated_alignment
+path_nt_alignment_output_folder=./output/s.jap/5_nt_alignment
+path_templated_alignment_output_folder=./output/s.jap/5_templated_alignment
+path_summarised_nt_alignment_output_folder=./output/s.jap/6_summarised_nt_alignment
+path_summarised_templated_alignment_output_folder=./output/s.jap/6_summarised_templated_alignment
+path_summarised_templated_alignment_all_output_folder=./output/s.jap/6_summarised_templated_alignment_all
+path_avg_summarised_nt_alignment_output_folder=./output/s.jap/7_avg_summarised_nt_alignment
+path_avg_summarised_templated_alignment_output_folder=./output/s.jap/7_avg_summarised_templated_alignment
+path_avg_summarised_templated_alignment_all_output_folder=./output/s.jap/7_avg_summarised_templated_alignment_all
+path_graph_processed_data_folder=./output/s.jap/8_graph_processed_data/
+path_graphs_folder=./output/s.jap/graphs/
 
 # Summarise isomiRs 
 read_count_threshold=10 # change this if necessary

@@ -14,6 +14,7 @@ import datetime
 from datetime import datetime as dt
 import pathlib
 import os 
+import subprocess
 
 # Create ar Dash instance 
 app = dash.Dash(
@@ -32,9 +33,11 @@ app.config.suppress_callback_exceptions = True
 BASE_PATH = pathlib.Path(__file__).parent.resolve()
 # Data path
 DATA_PATH = BASE_PATH.joinpath("data").resolve()
+# UTR path 
+UTR_PATH = '../test/s.jap/UTR.fa'
 # Output paths
-OUTPUT_1_PATH = '../outputs/1_summarised_isomiRs'
-OUTPUT_TARGET_PREDICTION = '../outputs/10_target_prediction'
+OUTPUT_1_PATH = '../output'
+OUTPUT_TARGET_PREDICTION = '../output/'
 
 #################
 # IMPORT DATASETS
@@ -47,6 +50,22 @@ groups_by_species = metadata_df.groupby('species').apply(lambda x: set(x['group'
 
 # Species-alias dict from metadata, for dropdown 
 species_list = dict(zip(metadata_df['species'].unique(), metadata_df['alias'].unique()))
+
+# 12 isomiR types 
+isomir_types = [
+    'mirna_exact', 
+    'iso_5p-iso_snp-iso_3p', 
+    'iso_5p-iso_snp',
+    'iso_5p-iso_multi_snp-iso_3p',
+    'iso_5p-iso_multi_snp',
+    'iso_5p-iso_3p',
+    'iso_5p_only',
+    'iso_snp-iso_3p',
+    'iso_snp_only',
+    'iso_multi_snp-iso_3p',
+    'iso_multi_snp_only',
+    'iso_3p_only'
+]
 
 #################
 # UI core components
@@ -96,8 +115,8 @@ def generate_control_card():
             html.P("Select isomiR type"),
             dcc.Dropdown(
                 id="isomir-type-select",
-                options=[{"label": v, "value": v} for v in ["3'isomiR", "5'isomiR", "Both end isomiR"]],
-                multi=False,
+                options=[{"label": v, "value": v} for v in isomir_types],
+                multi=True,
             ), 
             html.Br(),
 
@@ -106,7 +125,7 @@ def generate_control_card():
             dbc.Modal(
                 [
                     dbc.ModalHeader(dbc.ModalTitle("Export")),
-                    dbc.ModalBody("Figures are exported successfully. Please check the /outputs/graph folders !"),
+                    dbc.ModalBody("Target prediction done. Please check the /outputs folders !"),
                     dbc.ModalFooter(
                         dbc.Button("Close", id="close", className="ms-auto", n_clicks=0, color="success")
                     ),
@@ -141,15 +160,45 @@ app.layout = html.Div(
     ],
 )
 
-def predict_target(data, selected_species, selected_group, selected_canonical, selected_isomir_type):
-    data = data[data['species'] == selected_species]
-    data = data[data['group'] == selected_group]
+def create_isomirs_fasta(data, selected_canonical, selected_isomir_type, output_path): 
+    print(selected_isomir_type)
+    print(selected_canonical)
     data = data[data['mirna_name'].isin(selected_canonical)]
     data = data[data['type'].isin(selected_isomir_type)]
 
-    # Run target prediction here 
-    print(data)
+    # Create folder if not exist 
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
 
+    # Create fasta file 
+    with open(f"{output_path}/isomiRs.fa", "w+") as fa_file: 
+        for _, r in data.iterrows(): 
+            fa_file.write(f">{r['annotation'].replace('U', 'T')} {r['type']}\n{r['tag_sequence'].replace('U', 'T')}\n")
+
+def predict_target(data, selected_species, selected_group, selected_canonical, selected_isomir_type):
+    # Output path
+    output_path = f"{OUTPUT_TARGET_PREDICTION}/{selected_species}/9_target_prediction/{selected_group}/{'+'.join(selected_canonical)}/{'+'.join(selected_isomir_type)}"
+    
+    # Create isomiRs fasta file filtered by canonical and isomiR type
+    create_isomirs_fasta(data, selected_canonical, selected_isomir_type, output_path)
+
+    # Run target prediction script 
+    command = [
+        "miranda",
+        os.path.abspath(f"{output_path}/isomiRs.fa"),
+        os.path.abspath(UTR_PATH),
+        "-sc", str(140),
+        "-en", str(-20),
+        "-out", os.path.abspath(f"{output_path}/targets.txt")
+    ]
+    try:
+        result = subprocess.run(command, check=True, capture_output=True, text=True)
+        print("miRanda completed successfully.")
+        print(result.stdout)
+    except subprocess.CalledProcessError as e:
+        print("Error running miRanda:")
+        print(e.stderr)
+    
 
 # TODO update groups option based on speicies 
 @app.callback(
@@ -178,23 +227,19 @@ def update_group_options(selected_species):
 def load_data_and_canonical_list(selected_species, selected_group):
     # list of canonical
     mirnas = []
-    # group 
+    # group df
     group_df = pd.DataFrame()
 
     # load data 
     group_df_list = []
     
     if selected_species and selected_group:
-        for rep_file in os.listdir(f"{OUTPUT_1_PATH}/{selected_species}/{selected_group}"):
-            rep_df = pd.read_csv(f'{OUTPUT_1_PATH}/{selected_species}/{selected_group}/{rep_file}', sep='\t')
-            print(rep_df)
-            # Get replicate name 
-            rep_name = rep_file.split('.')[0]
-            rep_df['rep_name'] = rep_name
-            # Select a subset of important columns 
-            rep_df = rep_df[['mirna_name', 'tag_sequence', '#count_tags']]
+        for rep_file in os.listdir(f"{OUTPUT_1_PATH}/{selected_species}/1_summarised_isomiRs/{selected_group}"):
+            rep_df = pd.read_csv(f'{OUTPUT_1_PATH}/{selected_species}/1_summarised_isomiRs/{selected_group}/{rep_file}')
+            rep_df = rep_df[['mirna_name', 'tag_sequence', 'type', 'annotation']]
             group_df_list.append(rep_df)
         group_df = pd.concat(group_df_list, ignore_index=True) if group_df_list else pd.DataFrame()
+        group_df = group_df.drop_duplicates()
         
         if not group_df.empty:
             mirnas = group_df['mirna_name'].unique() 
@@ -241,7 +286,7 @@ def export(n_clicks_open, n_clicks_close, data, selected_species, selected_group
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
     if triggered_id == 'export-btn' and selected_species and selected_group and selected_canonical and selected_isomir_type:
-        predict_target(data, selected_species, selected_group, selected_canonical, selected_isomir_type)
+        predict_target(pd.read_json(data), selected_species, selected_group, selected_canonical, selected_isomir_type)
         return not is_open
 
     elif triggered_id == 'close':
