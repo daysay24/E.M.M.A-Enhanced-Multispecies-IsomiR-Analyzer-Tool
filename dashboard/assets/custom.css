@@ -6,6 +6,10 @@
     src: url("Acumin-BdPro.otf") format("opentype");
 }
 
+#_pages_content {
+    height: calc(100vh - 53px)
+}
+
 #app-container {
     width: 100%;
     max-width: none;
@@ -39,12 +43,24 @@ hr {
 }
 
 H6 {
-    color: #169873;
-    font-weight: 300;
+    color: #FFFFFF;
+    font-weight: 500;
 }
 
-H6, H3 {
+H6, H4 {
     font-family: Acumin, "Helvetica Neue", sans-serif;
+}
+
+H4 {
+    margin-top: 0;
+}
+
+#navigator-bar {
+    width: auto;
+    background-color: #169873;
+    padding: 3px 10px;
+    display: flex;
+    align-items: center;
 }
 
 #left-column {
@@ -53,15 +69,15 @@ H6, H3 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: calc(100vh - 5.5rem);
+    height: calc(100vh - 5.5rem - 53px);
     overflow-y: scroll;
 }
 
 #right-column {
     background-color: #f4f4f4;
     padding: 0rem 1rem;
-    min-height: calc(100vh - 5.5rem);
-    height: 100vh;
+    min-height: calc(100vh - 5.5rem - 53px);
+    height: calc(100vh - 53px);
     display: flex;
     flex-flow: row wrap;
 }
@@ -85,10 +101,6 @@ H6, H3 {
     margin: 3px 0px;
     font-family: "Helvetica Neue", sans-serif;
     text-align: justify;
-}
-
-#control-card > p {
-    font-weight: bold;
 }
 
 #control-card {
@@ -165,10 +177,6 @@ input[type="checkbox"] {
 #export-toggle {
     display: flex; 
     justify-content: space-between;
-}
-
-#export-toggle > p {
-    font-weight: bold;
 }
 
 .eXmVai {
@@ -255,6 +263,18 @@ input[type="checkbox"]:checked + div {
 .folder:before, .file:before
 {
     padding-right: 10px;
+}
+/*
+tooltip info 
+*/
+.info-tooltip {
+    font-size: 1.5rem;
+    text-align: left;
+}
+
+.select-title {
+    display: inline-block;
+    font-weight: bold;
 }
 
 /*

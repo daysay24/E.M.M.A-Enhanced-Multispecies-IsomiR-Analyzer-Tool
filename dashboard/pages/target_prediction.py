@@ -1,7 +1,6 @@
 import dash
-
 import dash_bootstrap_components as dbc
-from dash import dcc, html, Input, Output, State, callback_context 
+from dash import dcc, html, Input, Output, State, callback_context, callback, register_page 
 from dash.dependencies import ALL
 import plotly.graph_objects as go
 import plotly.express as px
@@ -16,15 +15,7 @@ import pathlib
 import os 
 import subprocess
 
-# Create ar Dash instance 
-app = dash.Dash(
-    __name__,
-    meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
-    external_stylesheets=[dbc.themes.BOOTSTRAP]
-)
-app.title = "E.M.M.A Enhanced Multispecies isomiR Analyzer Tool"
-server = app.server
-app.config.suppress_callback_exceptions = True
+register_page(__name__, "/target_prediction")
 
 ################
 # PATH
@@ -32,9 +23,9 @@ app.config.suppress_callback_exceptions = True
 # Base path
 BASE_PATH = pathlib.Path(__file__).parent.resolve()
 # Data path
-DATA_PATH = BASE_PATH.joinpath("data").resolve()
+DATA_PATH = BASE_PATH.joinpath("../data").resolve()
 # UTR path 
-UTR_PATH = '../test/s.jap/UTR.fa'
+UTR_PATH = '../test/mmu/UTR.fa'
 # Output paths
 OUTPUT_1_PATH = '../output'
 OUTPUT_TARGET_PREDICTION = '../output/'
@@ -79,8 +70,7 @@ def description_card():
     return html.Div(
         id="description-card",
         children=[
-            html.H6("E.M.M.A Enhanced Multispecies isomiR Analyzer Tool"),
-            html.H3("IsomiR Target Prediction")
+            html.H4("IsomiR Target Prediction")
         ],
     )
 
@@ -93,26 +83,26 @@ def generate_control_card():
     return html.Div(
         id="control-card",
         children=[            
-            html.P("Select species"),
+            html.P("Select species", className="select-title"),
             dcc.Dropdown(
-                id="species-select",
+                id="species-select-target",
                 options=[{"label": v, "value": k} for k,v in species_list.items()],
                 multi=False,
             ),
             html.Br(),
-            html.P("Select groups"),
+            html.P("Select groups", className="select-title"),
             dcc.Dropdown(
-                id="group-select",
+                id="group-select-target",
                 multi=False,
             ),  
             html.Br(),
-            html.P("Select canonical miRNA"),
+            html.P("Select canonical miRNA", className="select-title"),
             dcc.Dropdown(
                 id="canonical-select",
                 multi=True,
             ), 
             html.Br(),
-            html.P("Select isomiR type"),
+            html.P("Select isomiR type", className="select-title"),
             dcc.Dropdown(
                 id="isomir-type-select",
                 options=[{"label": v, "value": v} for v in isomir_types],
@@ -137,28 +127,28 @@ def generate_control_card():
     )
 
 # MAIN
-app.layout = html.Div(
-    id="app-container",
-    children=[
-        # Storage 
-        dcc.Store(id="data"),
+layout = html.Div(
+        id="app-container",
+        children=[
+            # Storage 
+            dcc.Store(id="data"),
 
-        # Side bar
-        html.Div(
-            id="left-column",
-            className="three columns",
-            children=[description_card(), generate_control_card()]
-        ),
-        # Right column
-        html.Div(
-            id="right-column",
-            className="nine columns",
-            style={
-                "overflowY": "scroll"
-            }
-        ),
-    ],
-)
+            # Side bar
+            html.Div(
+                id="left-column",
+                className="three columns",
+                children=[description_card(), generate_control_card()]
+            ),
+            # Right column
+            html.Div(
+                id="right-column",
+                className="nine columns",
+                style={
+                    "overflowY": "scroll"
+                }
+            )
+        ],
+    )
 
 def create_isomirs_fasta(data, selected_canonical, selected_isomir_type, output_path): 
     print(selected_isomir_type)
@@ -199,30 +189,31 @@ def predict_target(data, selected_species, selected_group, selected_canonical, s
         print("Error running miRanda:")
         print(e.stderr)
     
-
-# TODO update groups option based on speicies 
-@app.callback(
-    Output("group-select", "options"),
-    Input("species-select", "value")
+@callback(
+    Output("group-select-target", "options"),
+    Input("species-select-target", "value"),
+    prevent_initial_call=True,
 )
 def update_group_options(selected_species):
     if not selected_species:
         return []  # Empty options if no species selected
+    
+    print(groups_by_species)
 
     groups = groups_by_species.get(selected_species, set())
 
     return [{"label": g, "value": g} for g in sorted(groups)]
 
-# TODO update canonical option based on species + group 
-@app.callback(
+@callback(
     [
         Output('data', 'data'),
         Output('canonical-select', 'options'),
     ],
     [
-        Input('species-select', 'value'),
-        Input("group-select", 'value')
-    ]
+        Input('species-select-target', 'value'),
+        Input("group-select-target", 'value')
+    ],
+    prevent_initial_call=True
 ) 
 def load_data_and_canonical_list(selected_species, selected_group):
     # list of canonical
@@ -246,23 +237,21 @@ def load_data_and_canonical_list(selected_species, selected_group):
 
     return group_df.to_json(), mirnas
 
-
-# TODO enable / disable download 
-@app.callback(
+@callback(
     Output('export-btn', 'disabled'), 
     [
-        Input('species-select', 'value'),
-        Input('group-select', 'value'),
+        Input('species-select-target', 'value'),
+        Input('group-select-target', 'value'),
         Input('canonical-select', 'value'),
         Input('isomir-type-select', 'value')
-    ]
+    ],
+    prevent_initial_call=True
 ) 
 def disable_btn(selected_species, selected_group, selected_canonical, selected_isomir_type):
     if selected_species and selected_group and selected_canonical and selected_isomir_type:
         return False
 
-# TODO nclick download input: output/1/speices/group1 output output/target/speices/group1 
-@app.callback(
+@callback(
     Output("modal", "is_open"),
     [
         Input('export-btn', 'n_clicks'),
@@ -270,8 +259,8 @@ def disable_btn(selected_species, selected_group, selected_canonical, selected_i
     ],
     [   
         State('data', 'data'),
-        State('species-select', 'value'),
-        Input('group-select', 'value'),
+        State('species-select-target', 'value'),
+        Input('group-select-target', 'value'),
         Input('canonical-select', 'value'),
         Input('isomir-type-select', 'value'),
         State("modal", "is_open")
@@ -293,7 +282,3 @@ def export(n_clicks_open, n_clicks_close, data, selected_species, selected_group
         return not is_open
 
     return is_open
-
-# Run the server
-if __name__ == "__main__":
-    app.run(debug=True)
