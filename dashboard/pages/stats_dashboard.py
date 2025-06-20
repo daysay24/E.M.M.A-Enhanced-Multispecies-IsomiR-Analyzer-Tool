@@ -24,7 +24,7 @@ BASE_PATH = pathlib.Path(__file__).parent.resolve()
 # Data path
 DATA_PATH = BASE_PATH.joinpath("../data").resolve()
 # Output path
-OUTPUT_PATH = '../outputs/graphs'
+OUTPUT_PATH = '../output/mmu/graphs'
 
 #################
 # IMPORT DATASETS
@@ -244,7 +244,7 @@ def calculate_number_graphs(selected_analysis_type, selected_species_len, select
         return selected_species_len * selected_groups_len
 
 # Size calculation 
-def calculate_sizes(selected_analysis_type, selected_species_len, selected_groups_len):
+def calculate_sizes(selected_analysis_type, selected_species_len, selected_groups_len, selected_graph_type=None):
     """
     Calculate sizes of: 
     - species container div (height, width)
@@ -260,7 +260,7 @@ def calculate_sizes(selected_analysis_type, selected_species_len, selected_group
     graph_subplot_width = ""
     graph_subplot_height = "100%"
 
-    if selected_groups_len == 1 or selected_analysis_type in ["Canonical miRNAs & isomiRs (all groups)", "All isomiR types (charactised by nt)",  "3'isomiR types (charactised by nt)", "5'isomiR types (charactised by nt)", "IsomiR types (rpm)", "IsomiR types (unique tags)"]: 
+    if selected_groups_len == 1 or selected_analysis_type in ["Canonical miRNAs & isomiRs (all groups)", "All isomiR types (charactised by nt)",  "3'isomiR types (charactised by nt)", "5'isomiR types (charactised by nt)"] or selected_graph_type == 'bar': 
         if graph_number == 1:  
             graph_container_width = "100%"
             graph_container_height = "100%"
@@ -268,7 +268,6 @@ def calculate_sizes(selected_analysis_type, selected_species_len, selected_group
             graph_container_width = "50%"
             graph_container_height = "50%"
         graph_subplot_width = "100%"
-        
     else: 
         if selected_species_len < 3 :
             graph_container_height = str((1 / selected_species_len * 100)) + "%" 
@@ -392,9 +391,14 @@ def generate_individual_graph_2_pie(selected_analysis_type, species, group, size
 
     fig.update_layout(
         autosize=True,
+        title=dict(
+            text=f"<b>{group}</b>",           
+            font=dict(size=18, family="Arial", color="black"),
+            y=0.95,                
+        ),
         margin=dict(pad=10, t=20, b=0, l=2, r=20),
         uniformtext_minsize=10,
-        uniformtext_mode='hide',  # prevents text overlap
+        uniformtext_mode='hide',  
         plot_bgcolor='white'
     )
 
@@ -422,13 +426,9 @@ def generate_individual_graph_2_bar(selected_analysis_type, species, groups, siz
     data = data[data['group'].isin(groups)]
     data = data[data['grouped_type'].isin(selected_legend_items)]
 
-    # Value type
-    value_type = ''
     if selected_analysis_type == 'IsomiR types (rpm)': 
-        value_type = 'rpm'
         data['percentage'] = data.groupby('group')['rpm'].transform(lambda x: (x / x.sum()) * 100)
     else:
-        value_type = 'unique_tag' 
         data['percentage'] = data.groupby('group')['unique_tag'].transform(lambda x: (x / x.sum()) * 100)
 
 
@@ -893,7 +893,7 @@ def generate_graph_containers(selected_analysis_type, selected_graph_type, selec
     selected_species_len = len(selected_species)
     selected_groups_len = len(selected_groups)
 
-    sizes = calculate_sizes(selected_analysis_type, selected_species_len, selected_groups_len)
+    sizes = calculate_sizes(selected_analysis_type, selected_species_len, selected_groups_len, selected_graph_type)
 
     for species in selected_species: 
         species_graphs = generate_species_graphs(selected_analysis_type, selected_graph_type, species, selected_groups, sizes, selected_legend_items, legend_item_color, figures) 

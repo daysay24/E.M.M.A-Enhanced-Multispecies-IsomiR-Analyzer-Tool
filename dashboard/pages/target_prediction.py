@@ -151,8 +151,6 @@ layout = html.Div(
     )
 
 def create_isomirs_fasta(data, selected_canonical, selected_isomir_type, output_path): 
-    print(selected_isomir_type)
-    print(selected_canonical)
     data = data[data['mirna_name'].isin(selected_canonical)]
     data = data[data['type'].isin(selected_isomir_type)]
 
@@ -197,8 +195,6 @@ def predict_target(data, selected_species, selected_group, selected_canonical, s
 def update_group_options(selected_species):
     if not selected_species:
         return []  # Empty options if no species selected
-    
-    print(groups_by_species)
 
     groups = groups_by_species.get(selected_species, set())
 
