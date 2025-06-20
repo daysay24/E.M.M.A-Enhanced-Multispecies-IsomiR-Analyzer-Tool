@@ -82,6 +82,24 @@ H4 {
     flex-flow: row wrap;
 }
 
+#right-column-target {
+    background-color: #f4f4f4;
+    padding: 0rem 1rem;
+    min-height: calc(100vh - 5.5rem - 53px);
+    height: calc(100vh - 53px);
+    display: flex;
+    flex-flow: row wrap;
+}
+
+#btn-container {
+    display: flex;
+    justify-content: space-around;
+}
+
+.target-btn {
+    width:45%
+}
+
 .table-row {
     height: 63px;
     vertical-align: middle;

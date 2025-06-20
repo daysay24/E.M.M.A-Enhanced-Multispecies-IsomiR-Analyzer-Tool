@@ -1,6 +1,6 @@
 import dash
 import dash_bootstrap_components as dbc
-from dash import dcc, html, Input, Output, State, callback_context, callback, register_page 
+from dash import dcc, html, Input, Output, State, callback_context, callback, register_page, dash_table 
 from dash.dependencies import ALL
 import plotly.graph_objects as go
 import plotly.express as px
@@ -110,8 +110,13 @@ def generate_control_card():
             ), 
             html.Br(),
 
-            html.Button('Download', id='export-btn'),
-
+            html.Div(
+                id="btn-container",
+                children=[
+                    html.Button('Predict targets', id='export-btn', className='target-btn'),
+                    html.Button('Visualise', id='visualise-btn', className='target-btn', n_clicks=0)
+                ]
+            ),
             dbc.Modal(
                 [
                     dbc.ModalHeader(dbc.ModalTitle("Export")),
@@ -141,7 +146,7 @@ layout = html.Div(
             ),
             # Right column
             html.Div(
-                id="right-column",
+                id="right-column-target",
                 className="nine columns",
                 style={
                     "overflowY": "scroll"
@@ -163,30 +168,31 @@ def create_isomirs_fasta(data, selected_canonical, selected_isomir_type, output_
         for _, r in data.iterrows(): 
             fa_file.write(f">{r['annotation'].replace('U', 'T')} {r['type']}\n{r['tag_sequence'].replace('U', 'T')}\n")
 
+def get_miranda_output_path(selected_species, selected_group, selected_canonical, selected_isomir_type):
+    return f"{OUTPUT_TARGET_PREDICTION}/{selected_species}/9_target_prediction/{selected_group}/{'+'.join(selected_canonical)}/{'+'.join(selected_isomir_type)}"
+
 def predict_target(data, selected_species, selected_group, selected_canonical, selected_isomir_type):
     # Output path
-    output_path = f"{OUTPUT_TARGET_PREDICTION}/{selected_species}/9_target_prediction/{selected_group}/{'+'.join(selected_canonical)}/{'+'.join(selected_isomir_type)}"
+    output_path = get_miranda_output_path(selected_species, selected_group, selected_canonical, selected_isomir_type)
     
     # Create isomiRs fasta file filtered by canonical and isomiR type
     create_isomirs_fasta(data, selected_canonical, selected_isomir_type, output_path)
 
-    # Run target prediction script 
-    command = [
-        "miranda",
-        os.path.abspath(f"{output_path}/isomiRs.fa"),
-        os.path.abspath(UTR_PATH),
-        "-sc", str(140),
-        "-en", str(-20),
-        "-out", os.path.abspath(f"{output_path}/targets.txt")
-    ]
+    command = f"""miranda {os.path.abspath(f"{output_path}/isomiRs.fa")} \
+            {os.path.abspath(UTR_PATH)} \
+            -sc 140 -en -20 -out /dev/stdout | \
+            grep ">>" | sed 's/>>//g' | \
+            cat <(echo "Seq1,Seq2,Tot Score,Tot Energy,Max Score,Max Energy,Strand,Len1,Len2,Positions" | tr "," "\\t") - \
+            > {os.path.abspath(f"{output_path}/targets.txt")}
+    """
     try:
-        result = subprocess.run(command, check=True, capture_output=True, text=True)
+        result = subprocess.run(command, shell=True, executable="/bin/bash", capture_output=True, text=True, check=True)
         print("miRanda completed successfully.")
         print(result.stdout)
     except subprocess.CalledProcessError as e:
         print("Error running miRanda:")
         print(e.stderr)
-    
+
 @callback(
     Output("group-select-target", "options"),
     Input("species-select-target", "value"),
@@ -256,9 +262,9 @@ def disable_btn(selected_species, selected_group, selected_canonical, selected_i
     [   
         State('data', 'data'),
         State('species-select-target', 'value'),
-        Input('group-select-target', 'value'),
-        Input('canonical-select', 'value'),
-        Input('isomir-type-select', 'value'),
+        State('group-select-target', 'value'),
+        State('canonical-select', 'value'),
+        State('isomir-type-select', 'value'),
         State("modal", "is_open")
     ]
 )
@@ -278,3 +284,46 @@ def export(n_clicks_open, n_clicks_close, data, selected_species, selected_group
         return not is_open
 
     return is_open
+
+@callback(
+    Output('right-column-target', 'children'),
+    Input('visualise-btn', 'n_clicks'),
+    [
+        State('species-select-target', 'value'),
+        State('group-select-target', 'value'),
+        State('canonical-select', 'value'),
+        State('isomir-type-select', 'value')
+    ],
+    prevent_initial_call=True
+)
+def visualise_miranda_output(n_clicks, selected_species, selected_groups, selected_canonical, selected_isomir_type):
+    if not selected_species or not selected_groups or not selected_canonical or not selected_isomir_type:
+        return []
+    else: 
+        output_path = get_miranda_output_path(selected_species, selected_groups, selected_canonical, selected_isomir_type) + '/targets.txt'
+        if not os.path.exists(output_path):
+            return html.P(f'Miranda target prediction not found for {selected_species}, {selected_groups}, {selected_canonical}, {selected_isomir_type}. Predict Target first then try again.')
+        else:
+            targets_df = pd.read_csv(output_path, sep='\t')
+            return dash_table.DataTable(
+                targets_df.to_dict("records"),
+                [{"name": i, "id": i} for i in targets_df.columns],
+                filter_action="native",
+                filter_options={"placeholder_text": "Filter column..."},
+                page_size=10,
+                    style_table={
+                    "overflowX": "auto",   
+                    "width": "100%"       
+                }, 
+                style_cell={
+                    "minWidth": "120px",  
+                    "whiteSpace": "normal",  
+                    "textAlign": "center",
+                },
+                style_header={
+                    "fontWeight": "bold"
+                }
+            )
+
+
+    

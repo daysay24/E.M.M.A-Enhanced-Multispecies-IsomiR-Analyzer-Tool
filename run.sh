@@ -49,5 +49,5 @@ python ./code/7_avg_nt_templated.py $path_summarised_nt_alignment_output_folder 
 # Process graph data 
 python ./code/8_process_graph_data.py $path_avg_replicate_output_folder $path_avg_summarised_templated_alignment_output_folder $path_avg_summarised_nt_alignment_output_folder $path_avg_summarised_templated_alignment_all_output_folder $path_graph_processed_data_folder
 
-# Generate graphs 
-Rscript ./code/9_visualise.R $path_graphs_folder $path_graph_processed_data_folder
+# # Generate graphs 
+# Rscript ./code/9_visualise.R $path_graphs_folder $path_graph_processed_data_folder
