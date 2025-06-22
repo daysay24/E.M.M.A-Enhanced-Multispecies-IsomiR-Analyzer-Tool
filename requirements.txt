@@ -7,3 +7,4 @@ gunicorn>=19.9.0
 datetime>=4.3
 pathlib>=1.0.1
 kaleido
+colorama

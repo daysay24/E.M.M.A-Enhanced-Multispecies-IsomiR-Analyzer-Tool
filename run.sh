@@ -4,23 +4,23 @@
 find . -name ".DS_Store" -type f -delete
 
 # Paths 
-path_genomic_file=./test/s.jap/s.jap.fa # change this if necessary
-path_coords_file=./test/s.jap/s.jap.xlsx # change this if necessary
-path_raw_output_folder=./test/s.jap/isomiR-SEA_outputs # change this if necessary
-path_summarised_output_folder=./output/s.jap/1_summarised_isomiRs
-path_avg_replicate_output_folder=./output/s.jap/2_avg_replicate_isomiRs
-path_precursors_output_folder=./output/s.jap/3_precursors
-path_nt_templated_alignment_output_folder=./output/s.jap/4_nt_templated_alignment
-path_nt_alignment_output_folder=./output/s.jap/5_nt_alignment
-path_templated_alignment_output_folder=./output/s.jap/5_templated_alignment
-path_summarised_nt_alignment_output_folder=./output/s.jap/6_summarised_nt_alignment
-path_summarised_templated_alignment_output_folder=./output/s.jap/6_summarised_templated_alignment
-path_summarised_templated_alignment_all_output_folder=./output/s.jap/6_summarised_templated_alignment_all
-path_avg_summarised_nt_alignment_output_folder=./output/s.jap/7_avg_summarised_nt_alignment
-path_avg_summarised_templated_alignment_output_folder=./output/s.jap/7_avg_summarised_templated_alignment
-path_avg_summarised_templated_alignment_all_output_folder=./output/s.jap/7_avg_summarised_templated_alignment_all
-path_graph_processed_data_folder=./output/s.jap/8_graph_processed_data/
-path_graphs_folder=./output/s.jap/graphs/
+path_genomic_file=./test/mmu/mmu.fa # change this if necessary
+path_coords_file=./test/mmu/mmu.gff3 # change this if necessary
+path_raw_output_folder=./test/mmu/isomiR-SEA_outputs # change this if necessary
+path_summarised_output_folder=./output/mmu/1_summarised_isomiRs
+path_avg_replicate_output_folder=./output/mmu/2_avg_replicate_isomiRs
+path_precursors_output_folder=./output/mmu/3_precursors
+path_nt_templated_alignment_output_folder=./output/mmu/4_nt_templated_alignment
+path_nt_alignment_output_folder=./output/mmu/5_nt_alignment
+path_templated_alignment_output_folder=./output/mmu/5_templated_alignment
+path_summarised_nt_alignment_output_folder=./output/mmu/6_summarised_nt_alignment
+path_summarised_templated_alignment_output_folder=./output/mmu/6_summarised_templated_alignment
+path_summarised_templated_alignment_all_output_folder=./output/mmu/6_summarised_templated_alignment_all
+path_avg_summarised_nt_alignment_output_folder=./output/mmu/7_avg_summarised_nt_alignment
+path_avg_summarised_templated_alignment_output_folder=./output/mmu/7_avg_summarised_templated_alignment
+path_avg_summarised_templated_alignment_all_output_folder=./output/mmu/7_avg_summarised_templated_alignment_all
+path_graph_processed_data_folder=./output/mmu/8_graph_processed_data/
+path_graphs_folder=./output/mmu/graphs/
 
 # Summarise isomiRs 
 read_count_threshold=10 # change this if necessary
@@ -30,7 +30,7 @@ python ./code/1_summarise_isomiR_SEA.py $path_raw_output_folder $path_summarised
 python ./code/2_avg_summarised_isomiRs.py $path_summarised_output_folder $path_avg_replicate_output_folder
 
 # Get precursors 
-is_mirbase_gff=False # change this if necessary
+is_mirbase_gff=True # change this if necessary
 match_chr_names=True # change this if necessary
 python ./code/3_generate_precursor.py $path_summarised_output_folder $path_precursors_output_folder $path_genomic_file $path_coords_file $is_mirbase_gff $match_chr_names
 

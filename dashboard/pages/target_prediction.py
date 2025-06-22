@@ -310,7 +310,7 @@ def visualise_miranda_output(n_clicks, selected_species, selected_groups, select
                 [{"name": i, "id": i} for i in targets_df.columns],
                 filter_action="native",
                 filter_options={"placeholder_text": "Filter column..."},
-                page_size=10,
+                page_size=20,
                     style_table={
                     "overflowX": "auto",   
                     "width": "100%"       
