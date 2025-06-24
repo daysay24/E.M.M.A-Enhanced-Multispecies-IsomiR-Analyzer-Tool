@@ -5,6 +5,8 @@ import os
 import re
 import sys
 import fileinput
+from colorama import Fore, Style, init
+init(autoreset=True)
 
 def extract_miRBase_miR_info(row):
     """Extract 'id', 'name', 'derives_from' of an miRNA from mirBase gff3. 
@@ -105,14 +107,14 @@ def match_chromosomes(path_genomic_file, chr_names):
         else: 
             print(line.rstrip())
     
-def get_extended_miRNA_coordinates(is_mirbase_gff, match_chr_names, max_nt_diff_5p, max_nt_diff_3p, path_precursors_output_folder, path_genomic_file, path_coords_file):
+def get_extended_miRNA_coordinates(is_mirbase_gff, is_match_chr_names, max_nt_diff_5p, max_nt_diff_3p, path_precursors_output_folder, path_genomic_file, path_coords_file):
     """Extract the extended precursor sequences for miRNAs.
 
     Parameters
     ----------
     is_mirbase_gff : boolean
         Is the miRNA coordinates from miRBase gff file ? 
-    match_chr_names : boolean 
+    is_match_chr_names : boolean 
         Is matching chromosome names required ? It must be true if the chromosome names in genome file are not identical to those in miR coordinates file. 
     max_nt_diff_5p : int
         The maximum number of nucleotide difference at 5' end across all isomiRs.
@@ -147,7 +149,7 @@ def get_extended_miRNA_coordinates(is_mirbase_gff, match_chr_names, max_nt_diff_
         genomic_coordinates = pd.read_excel(path_coords_file)
 
     # Match chr names in genomic coordinate file with those in genome fasta file 
-    if match_chr_names:
+    if is_match_chr_names:
         genomic_coordinates['chr'] = genomic_coordinates['chr'].astype(str)
         genomic_coordinates['chr'] = genomic_coordinates['chr'].str.lower()        
         chr_names = list(genomic_coordinates['chr'].unique())
@@ -183,42 +185,30 @@ def get_extended_miRNA_coordinates(is_mirbase_gff, match_chr_names, max_nt_diff_
             extended_precursor_seqs.append(extended_precursor_seq)
     pd.DataFrame({'mir_name': mir_names, 'extended_precursor_seq': extended_precursor_seqs}).to_csv(f'{path_precursors_output_folder}/{max_nt_diff_5p}_{max_nt_diff_3p}_extended_precursor_seqs.csv', index=False)
 
-print("Running 3_generate_precursor.py script...")
+def run(path_summarised_output_folder, path_precursors_output_folder, path_genomic_file, path_coords_file, is_mirbase_gff, is_match_chr_names):
+    print(Fore.MAGENTA + "\nGenerating extended precursor sequences for miRNAs...")
 
-# Path to the summarised outputs folder 
-path_summarised_output_folder = sys.argv[1]
-# Path to the precursor folder 
-path_precursors_output_folder = sys.argv[2]
-# Path to the genomic reference file 
-path_genomic_file = sys.argv[3]
-# Path to the miRNA coordinates file 
-path_coords_file = sys.argv[4]
-# Is user using mirbase gff file 
-is_mirbase_gff = True if sys.argv[5] == 'True' else False
-# Does user want to match chromesome of genome file and gff or not
-match_chr_names = True if sys.argv[6] == 'True' else False
+    # Max nt difference at 5p and 3p 
+    max_nt_diff_5p, max_nt_diff_3p = 0, 0
+    # Create folder if not exists
+    if not os.path.exists(path_precursors_output_folder):
+        os.makedirs(path_precursors_output_folder)
 
-# Max nt difference at 5p and 3p 
-max_nt_diff_5p, max_nt_diff_3p = 0, 0
-# Create folder if not exists
-if not os.path.exists(path_precursors_output_folder):
-    os.makedirs(path_precursors_output_folder)
-
-# List of group folders 
-group_folders = os.listdir(path_summarised_output_folder)
-for group in group_folders:
-    # Get the list of replicate files
-    rep_files = os.listdir(f'{path_summarised_output_folder}/{group}')
-    # Loop through each replicate of that group 
-    for rep_file in rep_files:
-        # Get the replicate name 
-        rep_name = rep_file.split('.')[0]
-        # Read summarised isomiRs file of that replicate 
-        summarised_isomiRs = pd.read_csv(f'{path_summarised_output_folder}/{group}/{rep_file}', encoding='latin-1')
-        # Update max nt difference at 5p and 3p if necessary
-        if max(summarised_isomiRs['5p_nt_diff']) > max_nt_diff_5p: 
-            max_nt_diff_5p = max(summarised_isomiRs['5p_nt_diff'])
-        if max(summarised_isomiRs['3p_nt_diff']) > max_nt_diff_3p:
-            max_nt_diff_3p = max(summarised_isomiRs['3p_nt_diff'])
-get_extended_miRNA_coordinates(is_mirbase_gff, match_chr_names, max_nt_diff_5p, max_nt_diff_3p, path_precursors_output_folder, path_genomic_file, path_coords_file)
+    # List of group folders 
+    group_folders = os.listdir(path_summarised_output_folder)
+    for group in group_folders:
+        # Get the list of replicate files
+        rep_files = os.listdir(f'{path_summarised_output_folder}/{group}')
+        # Loop through each replicate of that group 
+        for rep_file in rep_files:
+            # Get the replicate name 
+            rep_name = rep_file.split('.')[0]
+            # Read summarised isomiRs file of that replicate 
+            summarised_isomiRs = pd.read_csv(f'{path_summarised_output_folder}/{group}/{rep_file}', encoding='latin-1')
+            # Update max nt difference at 5p and 3p if necessary
+            if max(summarised_isomiRs['5p_nt_diff']) > max_nt_diff_5p: 
+                max_nt_diff_5p = max(summarised_isomiRs['5p_nt_diff'])
+            if max(summarised_isomiRs['3p_nt_diff']) > max_nt_diff_3p:
+                max_nt_diff_3p = max(summarised_isomiRs['3p_nt_diff'])
+    get_extended_miRNA_coordinates(is_mirbase_gff, is_match_chr_names, max_nt_diff_5p, max_nt_diff_3p, path_precursors_output_folder, path_genomic_file, path_coords_file)
 

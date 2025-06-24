@@ -1,6 +1,8 @@
 import pandas as pd 
 import os
 import sys
+from colorama import Fore, Style, init
+init(autoreset=True)
 
 def split_nt_templated(input_file, output_file, type):
     """Extract nucleotide or matching symbol from the nucleotide details (<nucleotide>, <matching symbol>) and store each in a seperate file. 
@@ -50,30 +52,25 @@ def split_nt_templated(input_file, output_file, type):
                         templated_nt.loc[index, col] = first_val  
     templated_nt.to_csv(output_file, index=False)
 
-print("Running 5_split_nt_templated.py script...")
+def run(path_nt_templated_alignment_output_folder, path_nt_alignment_output_folder, path_templated_alignment_output_folder):
+    print(Fore.MAGENTA + "\nGenerating files showing variation at each positions of isomiRs ...")
 
-# Path to nt and templated alignment output files 
-path_nt_templated_alignment_output_folder = sys.argv[1]
-# Path to nt alignment output files 
-path_nt_alignment_output_folder = sys.argv[2]
-# Path to templated alignment output files 
-path_templated_alignment_output_folder = sys.argv[3]
-# List of group folders
-group_folders = os.listdir(path_nt_templated_alignment_output_folder)
-# Loop through each group
-for group in group_folders:
-    # Get the list of replicate files
-    rep_files = os.listdir(f'{path_nt_templated_alignment_output_folder}/{group}')
+    # List of group folders
+    group_folders = os.listdir(path_nt_templated_alignment_output_folder)
+    # Loop through each group
+    for group in group_folders:
+        # Get the list of replicate files
+        rep_files = os.listdir(f'{path_nt_templated_alignment_output_folder}/{group}')
 
-    if not os.path.exists(f'{path_nt_alignment_output_folder}/{group}'):
-        os.makedirs(f'{path_nt_alignment_output_folder}/{group}')
+        if not os.path.exists(f'{path_nt_alignment_output_folder}/{group}'):
+            os.makedirs(f'{path_nt_alignment_output_folder}/{group}')
 
-    if not os.path.exists(f'{path_templated_alignment_output_folder}/{group}'):
-        os.makedirs(f'{path_templated_alignment_output_folder}/{group}')
+        if not os.path.exists(f'{path_templated_alignment_output_folder}/{group}'):
+            os.makedirs(f'{path_templated_alignment_output_folder}/{group}')
 
-    # Loop through each replicate file 
-    for rep_file in rep_files:
-        # Generate the nt alignment from nt templated file 
-        split_nt_templated(f'{path_nt_templated_alignment_output_folder}/{group}/{rep_file}', f'{path_nt_alignment_output_folder}/{group}/{rep_file}', 'nt')
-        # Generate the templated alignment from nt templated file 
-        split_nt_templated(f'{path_nt_templated_alignment_output_folder}/{group}/{rep_file}', f'{path_templated_alignment_output_folder}/{group}/{rep_file}', 'templated')
+        # Loop through each replicate file 
+        for rep_file in rep_files:
+            # Generate the nt alignment from nt templated file 
+            split_nt_templated(f'{path_nt_templated_alignment_output_folder}/{group}/{rep_file}', f'{path_nt_alignment_output_folder}/{group}/{rep_file}', 'nt')
+            # Generate the templated alignment from nt templated file 
+            split_nt_templated(f'{path_nt_templated_alignment_output_folder}/{group}/{rep_file}', f'{path_templated_alignment_output_folder}/{group}/{rep_file}', 'templated')

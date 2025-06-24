@@ -30,6 +30,20 @@ UTR_PATH = '../test/mmu/UTR.fa'
 OUTPUT_1_PATH = '../output'
 OUTPUT_TARGET_PREDICTION = '../output/'
 
+################
+# PATH
+################
+# Project path
+BASE_PATH = pathlib.Path(__file__).parent.parent.parent.resolve()
+# Dashboard path 
+DASHBOARD_PATH = BASE_PATH.joinpath("dashboard")
+# Input path 
+INPUT_PATH = BASE_PATH.joinpath("input")
+# UTR path 
+UTR_PATH = '../test/mmu/UTR.fa'
+# Output path
+OUTPUT_PATH = BASE_PATH.joinpath("output")
+
 #################
 # IMPORT DATASETS
 ################# 

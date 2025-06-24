@@ -19,18 +19,18 @@ register_page(__name__, "/")
 ################
 # PATH
 ################
-# Base path
-BASE_PATH = pathlib.Path(__file__).parent.resolve()
-# Data path
-DATA_PATH = BASE_PATH.joinpath("../data").resolve()
+# Project path
+BASE_PATH = pathlib.Path(__file__).parent.parent.parent.resolve()
+# Dashboard path 
+DASHBOARD_PATH = BASE_PATH.joinpath("dashboard")
 # Output path
-OUTPUT_PATH = '../output/mmu/graphs'
+OUTPUT_PATH = BASE_PATH.joinpath("output")
 
 #################
 # IMPORT DATASETS
 ################# 
 # Read the meta file to get details of experimental design
-metadata_df = pd.read_csv(DATA_PATH.joinpath("metadata.csv"))
+metadata_df = pd.read_csv(DASHBOARD_PATH.joinpath("metadata.csv"))
 
 # species-groups dict from metadata, for dropdown 
 groups_by_species = metadata_df.groupby('species').apply(lambda x: set(x['group'])).to_dict()
@@ -47,10 +47,13 @@ nt_extended_list = []
 templated_nontemplated_all_list = []
 
 for species in species_list.keys(): 
-    # Get the list of outputs
-    outputs = os.listdir(DATA_PATH.joinpath(f'{species}'))
+    # TODO 
+    # Path to statistics outputs 
+    stats_output_path = OUTPUT_PATH.joinpath(f'{species}/8_graph_processed_data')
+    # Get the list of statistics outputs
+    outputs = os.listdir(stats_output_path)
     for output in outputs: 
-        output_df = pd.read_csv(DATA_PATH.joinpath(f'{species}/{output}'))
+        output_df = pd.read_csv(stats_output_path.joinpath(output))
         output_df['species'] = species  # Add species column
         
         # Collect DataFrames in lists instead of appending directly
@@ -77,7 +80,6 @@ templated_nontemplated_all_df = pd.concat(templated_nontemplated_all_list, ignor
 
 # Map analysis type with dataframe
 # Analysis type list, for dropdown 
-# TODO 
 analysis_type_list = {
     "Canonical miRNAs & isomiRs (all groups)": canonical_isomirs_df, 
     "IsomiR types (rpm)": isomir_types_df,
@@ -974,8 +976,11 @@ def get_legend_title(selected_analysis_type):
         return 'Variation type'
     
 def export_figures(selected_analysis_type, selected_figures, stored_figures, selected_format): 
-    if not os.path.exists(OUTPUT_PATH):
-        os.makedirs(OUTPUT_PATH)
+    # TODO depends on the species
+    # Graph output path
+
+    # if not os.path.exists(OUTPUT_PATH.joinpath(f"{selected_species}/graphs")):
+    #     os.makedirs(OUTPUT_PATH)
 
     if stored_figures and selected_figures:    
         current_analysis_type_folders = [folder for folder in os.listdir(OUTPUT_PATH)
@@ -996,7 +1001,7 @@ def export_figures(selected_analysis_type, selected_figures, stored_figures, sel
                 pio.write_image(fig, f'{figure_path}/Figure.{selected_format}', format=selected_format)
 
 def generate_folder_tree(selected_analysis_type, selected_figures, selected_graph_type):
-
+    # TODO 
     species_subfolders = []
     for selected_figure_set in selected_figures:
         if len(selected_figure_set) > 0:

@@ -3,15 +3,13 @@ import os
 import sys
 import warnings
 warnings.filterwarnings('ignore')
+from colorama import Fore, Style, init
+init(autoreset=True)
 
 # Graph 1: Summarise data for showing miRNAs and isomiRs total reads (rpm) and relative abundance as percentage of total reads. 
-def process_graph1_data():
+def process_graph1_data(path_avg_replicate_output_folder, path_graph_processed_data_folder):
     # All groups df
     all_group_df = pd.DataFrame()
-    # Path to the average isomiR files 
-    path_avg_replicate_output_folder = sys.argv[1]
-    # Path to graph processed data files 
-    path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged summarised isomiRs of each group
     avg_files = sorted(os.listdir(path_avg_replicate_output_folder))
 
@@ -39,13 +37,9 @@ def process_graph1_data():
     all_group_df.to_csv(f'{path_graph_processed_data_folder}/graph_1_data.csv', index=False)
 
 # Graph 2: Summarise data for showing the relative abundance as percentage of total reads of types (5p, 3p, both, canonical, others).
-def process_graph2_data():
+def process_graph2_data(path_avg_replicate_output_folder, path_graph_processed_data_folder):
     # All groups df
     all_group_df = pd.DataFrame()
-    # Path to the average isomiR files 
-    path_avg_replicate_output_folder = sys.argv[1]
-    # Path to graph processed data files 
-    path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged summarised isomiRs of each group
     avg_files = sorted(os.listdir(path_avg_replicate_output_folder))
     for avg_file in avg_files:
@@ -65,13 +59,9 @@ def process_graph2_data():
     all_group_df.to_csv(f'{path_graph_processed_data_folder}/graph_2_data.csv', index=False)
 
 # Summarise data for showing proportions of 5p/3p addition/truncation at different positions (3e1, 3e2, 3e3,..., 3t1, 3t2, 5e1, 5e2,..., 5t1, 5t2, 5t3, ...) across stages 
-def process_graph3_data():
+def process_graph3_data(path_avg_replicate_output_folder, path_graph_processed_data_folder):
     # All groups df
     all_group_df = pd.DataFrame()
-    # Path to the average isomiR files 
-    path_avg_replicate_output_folder = sys.argv[1]
-    # Path to graph processed data files 
-    path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged summarised isomiRs of each group
     avg_files = sorted(os.listdir(path_avg_replicate_output_folder))
     for avg_file in avg_files:
@@ -93,13 +83,9 @@ def process_graph3_data():
     all_group_df.to_csv(f'{path_graph_processed_data_folder}/graph_3_data.csv', index=False)
 
 # Summarise data for showing proportion of templated vs nontemplated at addition positions in different groups. 
-def process_graph4_data():
+def process_graph4_data(path_avg_summarised_templated_alignment_output_folder, path_graph_processed_data_folder):
     # All groups df
     all_group_df = pd.DataFrame()
-    # Path to the average templated summarised alignment files 
-    path_avg_summarised_templated_alignment_output_folder = sys.argv[2]
-    # Path to graph processed data files 
-    path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged templated summarised alignment file of each group
     avg_files = sorted(os.listdir(path_avg_summarised_templated_alignment_output_folder))
     for avg_file in avg_files:
@@ -115,13 +101,9 @@ def process_graph4_data():
     all_group_df.to_csv(f'{path_graph_processed_data_folder}/graph_4_data.csv', index=False)
 
 # summarise data for showing proportion of nucleotides (A, U, C, G) at addition positions in different groups.
-def process_graph5_data():
+def process_graph5_data(path_avg_summarised_nt_alignment_output_folder, path_graph_processed_data_folder):
     # All groups df
     all_group_df = pd.DataFrame()
-    # Path to the average nt summarised alignment files 
-    path_avg_summarised_nt_alignment_output_folder = sys.argv[3]
-    # Path to graph processed data files 
-    path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged nt summarised alignment file of each group
     avg_files = sorted(os.listdir(path_avg_summarised_nt_alignment_output_folder))
     for avg_file in avg_files:
@@ -136,13 +118,9 @@ def process_graph5_data():
             all_group_df = pd.concat([all_group_df, avg_nt_summarised_alignment_df], ignore_index=True)
     all_group_df.to_csv(f'{path_graph_processed_data_folder}/graph_5_data.csv', index=False)
 
-def process_graph6_data():
+def process_graph6_data(path_avg_summarised_templated_alignment_all_output_folder, path_graph_processed_data_folder):
     # All groups df
     all_group_df = pd.DataFrame()
-    # Path to the average templated summarised alignment files 
-    path_avg_summarised_templated_alignment_all_output_folder = sys.argv[4]
-    # Path to graph processed data files 
-    path_graph_processed_data_folder = sys.argv[5]
     # Loop through averaged templated summarised alignment all file of each group
     avg_files = sorted(os.listdir(path_avg_summarised_templated_alignment_all_output_folder))
     for avg_file in avg_files:
@@ -157,15 +135,21 @@ def process_graph6_data():
             all_group_df = pd.concat([all_group_df, avg_templated_summarised_alignment_all_df], ignore_index=True)
     all_group_df.to_csv(f'{path_graph_processed_data_folder}/graph_6_data.csv', index=False)
 
+def run(
+    path_avg_replicate_output_folder,
+    path_avg_summarised_templated_alignment_output_folder,
+    path_avg_summarised_nt_alignment_output_folder,
+    path_avg_summarised_templated_alignment_all_output_folder,
+    path_graph_processed_data_folder
+):
+    print(Fore.MAGENTA + "\nPreparing data for isomiR statistics visualisation ...")
 
-if not os.path.exists(sys.argv[5]):
-    os.makedirs(sys.argv[5])
+    if not os.path.exists(path_graph_processed_data_folder):
+        os.makedirs(path_graph_processed_data_folder)
 
-print("Running 8_process_graph_data.py script...")
-
-process_graph1_data()
-process_graph2_data()
-process_graph3_data()
-process_graph4_data()
-process_graph5_data()
-process_graph6_data()
+    process_graph1_data(path_avg_replicate_output_folder, path_graph_processed_data_folder)
+    process_graph2_data(path_avg_replicate_output_folder, path_graph_processed_data_folder)
+    process_graph3_data(path_avg_replicate_output_folder, path_graph_processed_data_folder)
+    process_graph4_data(path_avg_summarised_templated_alignment_output_folder, path_graph_processed_data_folder)
+    process_graph5_data(path_avg_summarised_nt_alignment_output_folder, path_graph_processed_data_folder)
+    process_graph6_data(path_avg_summarised_templated_alignment_all_output_folder, path_graph_processed_data_folder)
