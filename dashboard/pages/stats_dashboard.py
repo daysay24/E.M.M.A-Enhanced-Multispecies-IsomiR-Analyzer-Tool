@@ -47,7 +47,6 @@ nt_extended_list = []
 templated_nontemplated_all_list = []
 
 for species in species_list.keys(): 
-    # TODO 
     # Path to statistics outputs 
     stats_output_path = OUTPUT_PATH.joinpath(f'{species}/8_graph_processed_data')
     # Get the list of statistics outputs
@@ -347,6 +346,7 @@ def generate_individual_graph_1(selected_analysis_type, species, groups, sizes, 
     )
 
     # Figure name 
+    groups.sort()
     fig_name = f'{selected_analysis_type}:{species}:{"_".join(groups)}'
     figures[fig_name] = fig
 
@@ -488,6 +488,7 @@ def generate_individual_graph_2_bar(selected_analysis_type, species, groups, siz
     )
     
     # Figure name 
+    groups.sort()
     fig_name = f'{selected_analysis_type}:{species}:{"_".join(groups)}'
     figures[fig_name] = fig
 
@@ -572,6 +573,7 @@ def generate_individual_graph_3(selected_analysis_type, species, groups, sizes, 
     )
     
     # Figure name 
+    groups.sort()
     fig_name = f'{selected_analysis_type}:{species}:{"_".join(groups)}'
     figures[fig_name] = fig
 
@@ -976,19 +978,7 @@ def get_legend_title(selected_analysis_type):
         return 'Variation type'
     
 def export_figures(selected_analysis_type, selected_figures, stored_figures, selected_format): 
-    # TODO depends on the species
-    # Graph output path
-
-    # if not os.path.exists(OUTPUT_PATH.joinpath(f"{selected_species}/graphs")):
-    #     os.makedirs(OUTPUT_PATH)
-
     if stored_figures and selected_figures:    
-        current_analysis_type_folders = [folder for folder in os.listdir(OUTPUT_PATH)
-            if os.path.isdir(os.path.join(OUTPUT_PATH, folder)) and folder.startswith(selected_analysis_type)]
-        
-        analysis_type_folder_path = f'{OUTPUT_PATH}/{selected_analysis_type}' if len(current_analysis_type_folders) == 0 else f'{OUTPUT_PATH}/{selected_analysis_type} ({len(current_analysis_type_folders)})'
-        os.makedirs(analysis_type_folder_path)
-
         for selected_figure_set in selected_figures: 
             for selected_figure in selected_figure_set:
                 selected_figure_names = selected_figure.split(':')
@@ -996,35 +986,39 @@ def export_figures(selected_analysis_type, selected_figures, stored_figures, sel
                 group = selected_figure_names[2]
                 fig = stored_figures[selected_figure]
             
-                figure_path = f'{analysis_type_folder_path}/{species}/{group}'
-                os.makedirs(figure_path)
+                figure_path = f'{OUTPUT_PATH}/{species}/graphs/{selected_analysis_type}/{group}'
+                if not os.path.exists(figure_path):
+                    os.makedirs(figure_path)
                 pio.write_image(fig, f'{figure_path}/Figure.{selected_format}', format=selected_format)
 
-def generate_folder_tree(selected_analysis_type, selected_figures, selected_graph_type):
-    # TODO 
+def generate_folder_tree(selected_analysis_type, selected_figures, selected_export_format):
     species_subfolders = []
     for selected_figure_set in selected_figures:
-        if len(selected_figure_set) > 0:
+        if len(selected_figure_set) > 0: 
             species = selected_figure_set[0].split(":")[1]
             group_subfolders = []
-            
+
             for selected_figure in selected_figure_set: 
                 group = selected_figure.split(":")[2]
                 group_subfolders.append(
-                    html.Div([html.Span(group, className="folder fa fa-folder-o"), html.Span(f"Figure.svg", className="file fa fa-file-excel-o")], className="foldercontainer")
+                    html.Div([html.Span(group, className="folder fa fa-folder-o"), html.Span(f"Figure.{selected_export_format}", className="file fa fa-file-excel-o")], className="foldercontainer")
                 )
+
             species_subfolders.append(
-                html.Div([html.Span(species, className="folder fa fa-folder-o")] + group_subfolders, className="foldercontainer")
+                html.Div([
+                    html.Span(species, className="folder fa fa-folder-o", **{"data-isexpanded": "true"}),
+                    html.Div([
+                        html.Span('graphs', className='folder fa fa-folder-o'),
+                        html.Div([
+                            html.Span(selected_analysis_type, className='folder fa fa-folder-o')
+                        ] + group_subfolders, className='foldercontainer')
+                    ], className='foldercontainer')
+                ], 
+                className="foldercontainer")
             )
-    
-    return [
-        html.Div(
-            [
-                html.Span(selected_analysis_type, className="folder fa fa-folder-o", **{"data-isexpanded": "true"}),
-            ] + species_subfolders, 
-            className="foldercontainer")
-    ]
-        
+
+    return species_subfolders
+
 # MAIN
 layout = html.Div(
         id="app-container",
@@ -1218,13 +1212,13 @@ def toggle_checklist(export_on, export_disabled,  selected_species):
     [
         Input('export-switch', 'on'),
         Input({'type': 'species-graph-checklist', 'index': ALL}, 'value'),
-        Input('graph-type-select', 'value'),
+        Input('select-export-format', 'value'),
         State('analysis-type-select', 'value')
     ]
 )
-def show_folder_tree(export_on, selected_figures, selected_graph_type, selected_analysis_type):
+def show_folder_tree(export_on, selected_figures, selected_export_format, selected_analysis_type):
     if export_on == True: 
-        return generate_folder_tree(selected_analysis_type, selected_figures, selected_graph_type)
+        return generate_folder_tree(selected_analysis_type, selected_figures, selected_export_format)
     return []
         
 @callback(

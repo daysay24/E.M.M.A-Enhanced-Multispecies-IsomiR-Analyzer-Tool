@@ -20,27 +20,12 @@ register_page(__name__, "/target_prediction")
 ################
 # PATH
 ################
-# Base path
-BASE_PATH = pathlib.Path(__file__).parent.resolve()
-# Data path
-DATA_PATH = BASE_PATH.joinpath("../data").resolve()
-# UTR path 
-UTR_PATH = '../test/mmu/UTR.fa'
-# Output paths
-OUTPUT_1_PATH = '../output'
-OUTPUT_TARGET_PREDICTION = '../output/'
-
-################
-# PATH
-################
 # Project path
 BASE_PATH = pathlib.Path(__file__).parent.parent.parent.resolve()
 # Dashboard path 
 DASHBOARD_PATH = BASE_PATH.joinpath("dashboard")
 # Input path 
 INPUT_PATH = BASE_PATH.joinpath("input")
-# UTR path 
-UTR_PATH = '../test/mmu/UTR.fa'
 # Output path
 OUTPUT_PATH = BASE_PATH.joinpath("output")
 
@@ -48,7 +33,7 @@ OUTPUT_PATH = BASE_PATH.joinpath("output")
 # IMPORT DATASETS
 ################# 
 # Read the meta file to get details of experimental design
-metadata_df = pd.read_csv(DATA_PATH.joinpath("metadata.csv"))
+metadata_df = pd.read_csv(DASHBOARD_PATH.joinpath("metadata.csv"))
 
 # species-groups dict from metadata, for dropdown 
 groups_by_species = metadata_df.groupby('species').apply(lambda x: set(x['group'])).to_dict()
@@ -183,7 +168,9 @@ def create_isomirs_fasta(data, selected_canonical, selected_isomir_type, output_
             fa_file.write(f">{r['annotation'].replace('U', 'T')} {r['type']}\n{r['tag_sequence'].replace('U', 'T')}\n")
 
 def get_miranda_output_path(selected_species, selected_group, selected_canonical, selected_isomir_type):
-    return f"{OUTPUT_TARGET_PREDICTION}/{selected_species}/9_target_prediction/{selected_group}/{'+'.join(selected_canonical)}/{'+'.join(selected_isomir_type)}"
+    selected_canonical.sort()
+    selected_isomir_type.sort()
+    return f"{OUTPUT_PATH}/{selected_species}/9_target_prediction/{selected_group}/{'+'.join(selected_canonical)}/{'+'.join(selected_isomir_type)}"
 
 def predict_target(data, selected_species, selected_group, selected_canonical, selected_isomir_type):
     # Output path
@@ -193,7 +180,7 @@ def predict_target(data, selected_species, selected_group, selected_canonical, s
     create_isomirs_fasta(data, selected_canonical, selected_isomir_type, output_path)
 
     command = f"""miranda {os.path.abspath(f"{output_path}/isomiRs.fa")} \
-            {os.path.abspath(UTR_PATH)} \
+            {os.path.abspath(f"{INPUT_PATH}/{selected_species}/UTR.fa")} \
             -sc 140 -en -20 -out /dev/stdout | \
             grep ">>" | sed 's/>>//g' | \
             cat <(echo "Seq1,Seq2,Tot Score,Tot Energy,Max Score,Max Energy,Strand,Len1,Len2,Positions" | tr "," "\\t") - \
@@ -241,8 +228,8 @@ def load_data_and_canonical_list(selected_species, selected_group):
     group_df_list = []
     
     if selected_species and selected_group:
-        for rep_file in os.listdir(f"{OUTPUT_1_PATH}/{selected_species}/1_summarised_isomiRs/{selected_group}"):
-            rep_df = pd.read_csv(f'{OUTPUT_1_PATH}/{selected_species}/1_summarised_isomiRs/{selected_group}/{rep_file}')
+        for rep_file in os.listdir(f"{OUTPUT_PATH}/{selected_species}/1_summarised_isomiRs/{selected_group}"):
+            rep_df = pd.read_csv(f'{OUTPUT_PATH}/{selected_species}/1_summarised_isomiRs/{selected_group}/{rep_file}')
             rep_df = rep_df[['mirna_name', 'tag_sequence', 'type', 'annotation']]
             group_df_list.append(rep_df)
         group_df = pd.concat(group_df_list, ignore_index=True) if group_df_list else pd.DataFrame()

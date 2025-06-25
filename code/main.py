@@ -1,4 +1,5 @@
 import os 
+import subprocess
 import re
 import pandas as pd
 import summarise_isomir_sea 
@@ -61,8 +62,8 @@ def check_input_files_exist(input_folder):
         raise FileNotFoundError(f"{input_folder}/genomic.fa not found! Please add the required file and try again.")
     if not os.path.exists(f"{input_folder}/UTR.fa"):
         raise FileNotFoundError(f"{input_folder}/UTR.fa not found! Please add the required file and try again.")
-    if not os.path.exists(f"{input_folder}/miRNA_annotation.gff3"):
-        raise FileNotFoundError(f"{input_folder}/miRNA_annotation.gff3 not found! Please add the required file and try again.")
+    if not os.path.exists(f"{input_folder}/miRNA_annotation.gff3") and not os.path.exists(f"{input_folder}/miRNA_annotation.xlsx"):
+        raise FileNotFoundError(f"Both {input_folder}/miRNA_annotation.gff3 and {input_folder}/miRNA_annotation.xlsx not found! Please add either required file and try again.")
     if not os.path.exists(f"{input_folder}/isomiR-SEA_outputs/"):
         raise FileNotFoundError(f"{input_folder}/isomiR-SEA_outputs/ not found! Please add the required folder and try again.")
 
@@ -104,7 +105,7 @@ def get_analyse_isomirs_info():
     print("\nPlease ensure this folder contains the following required files:")
     print("  - genomic.fa")
     print("  - UTR.fa")
-    print("  - miRNA_annotation.gff3")
+    print("  - miRNA_annotation.gff3 or miRNA_annotation.xlsx")
     print("  - isomiR-SEA_outputs/")
 
     print(Fore.CYAN + "\nStep 3: Parameters and Output")
@@ -114,7 +115,7 @@ def get_analyse_isomirs_info():
     if not read_count_thres:
         read_count_thres = 10
 
-    is_mirbase_gff = get_yes_no_value('Is miRNA_annotation.gff3 from mirbase (Y/N) ?:')
+    is_mirbase_gff = get_yes_no_value('Is miRNA_annotation file from mirbase (Y/N) ?:')
     
     is_match_chr_names = get_yes_no_value('Is match gff to genome required (Y/N) ?:')
 
@@ -128,7 +129,7 @@ def analyse_isomirs():
     root_folder, input_folder, species_code, species_name, read_count_thres, is_mirbase_gff, is_match_chr_names, output_folder = get_analyse_isomirs_info()
 
     path_genomic_file = input_folder + '/genomic.fa'
-    path_coords_file = input_folder + '/miRNA_annotation.gff3'
+    path_coords_file = input_folder + '/miRNA_annotation.gff3' if is_mirbase_gff else input_folder + '/miRNA_annotation.xlsx'
     path_raw_output_folder = input_folder + '/isomiR-SEA_outputs'
     path_summarised_output_folder = output_folder + '/1_summarised_isomiRs'
     path_avg_replicate_output_folder = output_folder + '/2_avg_replicate_isomiRs'
@@ -194,6 +195,8 @@ def analyse_isomirs():
 
 def visualise_isomirs(): 
     print(Fore.MAGENTA + "\n[Visualising multi-species work in progress]\n")
+    subprocess.run(["python", "../dashboard/app.py"])
+    
 
 def stop(): 
     print(Fore.GREEN + "\nGoodbye!\n")
