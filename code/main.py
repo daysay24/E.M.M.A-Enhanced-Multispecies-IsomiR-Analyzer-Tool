@@ -1,6 +1,7 @@
 import os 
 import subprocess
 import re
+import signal
 import pandas as pd
 import summarise_isomir_sea 
 import avg_summarised_isomirs 
@@ -147,7 +148,6 @@ def analyse_isomirs():
 
     try: 
         check_input_files_exist(input_folder)
-        update_metadata_file(species_code, species_name, input_folder, root_folder)
         summarise_isomir_sea.run(
             path_raw_output_folder, 
             path_summarised_output_folder, 
@@ -190,28 +190,56 @@ def analyse_isomirs():
             path_avg_summarised_nt_alignment_output_folder,
             path_avg_summarised_templated_alignment_all_output_folder,
             path_graph_processed_data_folder)
+        update_metadata_file(species_code, species_name, input_folder, root_folder)
     except Exception as e: 
         print(f'Analyse isomiRs of {species_name} ({species_code}) failed due to: {e}')
 
 def visualise_isomirs(): 
-    print(Fore.MAGENTA + "\n[Visualising multi-species work in progress]\n")
-    subprocess.run(["python", "../dashboard/app.py"])
-    
+    print(Fore.MAGENTA + "\nVisualising multi-species work in progress\n")
 
-def stop(): 
-    print(Fore.GREEN + "\nGoodbye!\n")
+    process = subprocess.Popen(
+    ["python", "../dashboard/app.py"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        preexec_fn=os.setpgrp
+    )
+
+    print(process.pid)
+    return process
+
+def kill_process(process):
+    os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+
+def is_visualisation_process_stopped(process): 
+    is_stopping_visualisation = get_yes_no_value(Fore.RED + "\nYou can't add more species while the visualisation is running. Do you want to stop it first ?: ")
+    if is_stopping_visualisation: 
+        kill_process(process)
+        return True
+    else:
+        return False
 
 if __name__ == "__main__":
+    process = None
     while True: 
         print_menu()
         choice = input(Fore.YELLOW + "\nEnter your choice: ").strip()
 
         if choice == '1':
-            analyse_isomirs()
+            if not process: 
+                analyse_isomirs()
+            else: 
+                if is_visualisation_process_stopped(process):
+                    process = None
+                    analyse_isomirs()
         elif choice == '2':
-            visualise_isomirs()
-        elif choice == '3': 
-            stop()
+            if process: 
+                print(Fore.MAGENTA + "\nVisualising multi-species work in progress\n")
+            else:
+                process = visualise_isomirs()
+        elif choice == '3':
+            if process: 
+                kill_process(process)
+            print(Fore.GREEN + "\nExiting the program...\n")
             break
         else: 
             print(Fore.RED + "\nInvalid choice. Please enter 1, 2, or 3.")
