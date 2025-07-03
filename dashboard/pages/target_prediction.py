@@ -113,20 +113,26 @@ def generate_control_card():
                 id="btn-container",
                 children=[
                     html.Button('Predict targets', id='export-btn', className='target-btn'),
-                    html.Button('Visualise', id='visualise-btn', className='target-btn', n_clicks=0)
+                    dcc.Loading(
+                        type="circle",
+                        color="#169873",
+                        children=[
+                            dbc.Modal(
+                                [
+                                    dbc.ModalHeader(dbc.ModalTitle("Export")),
+                                    dbc.ModalBody("Target prediction done. Please check the /output/<species code>/9_target_prediction folders !"),
+                                    dbc.ModalFooter(
+                                        dbc.Button("Close", id="close", className="ms-auto", n_clicks=0, color="success")
+                                    ),
+                                ],
+                                id="modal-target",
+                                is_open=False,
+                            )
+                        ]
+                    ),
+                    html.Button('Visualise', id='visualise-btn', className='target-btn', n_clicks=0)  
                 ]
             ),
-            dbc.Modal(
-                [
-                    dbc.ModalHeader(dbc.ModalTitle("Export")),
-                    dbc.ModalBody("Target prediction done. Please check the /outputs folders !"),
-                    dbc.ModalFooter(
-                        dbc.Button("Close", id="close", className="ms-auto", n_clicks=0, color="success")
-                    ),
-                ],
-                id="modal",
-                is_open=False,
-            )
         ],
     )
 
@@ -255,7 +261,7 @@ def disable_btn(selected_species, selected_group, selected_canonical, selected_i
         return False
 
 @callback(
-    Output("modal", "is_open"),
+    Output("modal-target", "is_open"),
     [
         Input('export-btn', 'n_clicks'),
         Input("close", "n_clicks")
@@ -266,7 +272,7 @@ def disable_btn(selected_species, selected_group, selected_canonical, selected_i
         State('group-select-target', 'value'),
         State('canonical-select', 'value'),
         State('isomir-type-select', 'value'),
-        State("modal", "is_open")
+        State("modal-target", "is_open")
     ]
 )
 def export(n_clicks_open, n_clicks_close, data, selected_species, selected_group, selected_canonical, selected_isomir_type, is_open):

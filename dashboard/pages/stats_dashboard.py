@@ -216,21 +216,27 @@ def generate_control_card():
                     value='svg'
                 ),
                 html.Div(id="export-folder-tree"),
-                html.Button('Download', id='export-btn')
-            ]),
-
-
-            dbc.Modal(
-                [
-                    dbc.ModalHeader(dbc.ModalTitle("Export")),
-                    dbc.ModalBody("Figures are exported successfully. Please check the /outputs/graph folders !"),
-                    dbc.ModalFooter(
-                        dbc.Button("Close", id="close", className="ms-auto", n_clicks=0, color="success")
-                    ),
-                ],
-                id="modal-target",
-                is_open=False,
-            )
+                html.Div(className = "export-btn-spinner-container", children=[
+                    html.Button('Download', id='export-btn'),
+                    dcc.Loading(
+                        type="circle",
+                        color="#169873",
+                        children=[
+                            dbc.Modal(
+                                [
+                                    dbc.ModalHeader(dbc.ModalTitle("Export")),
+                                    dbc.ModalBody("Figures are exported successfully. Please check the /output/<species code>/graphs folders!"),
+                                    dbc.ModalFooter(
+                                        dbc.Button("Close", id="close", className="ms-auto", n_clicks=0, color="success")
+                                    ),
+                                ],
+                                id="modal-stats",
+                                is_open=False,
+                            )
+                        ]
+                    )
+                ])
+            ])
         ],
     )
 
@@ -1142,7 +1148,7 @@ def update_graphs(selected_analysis_type, selected_graph_type, selected_species,
     return results, figures
 
 @callback(
-    Output("modal-target", "is_open"),
+    Output("modal-stats", "is_open"),
     [
         Input('export-btn', 'n_clicks'),
         Input("close", "n_clicks")
@@ -1151,7 +1157,7 @@ def update_graphs(selected_analysis_type, selected_graph_type, selected_species,
         State('analysis-type-select', 'value'),
         State({'type': 'species-graph-checklist', 'index': ALL}, 'value'),
         State('stored-figures', 'data'),
-        State("modal-target", "is_open")
+        State("modal-stats", "is_open")
     ],
     prevent_initial_call=True
 )
@@ -1179,12 +1185,11 @@ def export(n_clicks_open, n_clicks_close, selected_format, selected_analysis_typ
     State('export-switch', 'on'),
     prevent_initial_call=True
 )
-def disable_btn(stored_figures, export_on):
+def disable_export_toggle(stored_figures, export_on):
     if not stored_figures:
         return True, False
     else: 
         return False, export_on
-        
 
 @callback(
     Output({'type': 'species-graph-checklist', 'index': ALL}, 'className'),

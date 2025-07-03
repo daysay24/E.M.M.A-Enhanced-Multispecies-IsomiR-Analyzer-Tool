@@ -1,4 +1,5 @@
 import os 
+import time
 import subprocess
 import re
 import signal
@@ -195,17 +196,22 @@ def analyse_isomirs():
         print(f'Analyse isomiRs of {species_name} ({species_code}) failed due to: {e}')
 
 def visualise_isomirs(): 
-    print(Fore.MAGENTA + "\nVisualising multi-species work in progress\n")
+    print(Fore.MAGENTA + "\nVisualising multi-species work in progress ...\n")
 
-    process = subprocess.Popen(
-    ["python", "../dashboard/app.py"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        preexec_fn=os.setpgrp
-    )
-
-    print(process.pid)
-    return process
+    with open("../dashboard/error.log", "w") as log_file:
+        process = subprocess.Popen(
+            ["python", "../dashboard/app.py"],
+            stdout=log_file,
+            stderr=log_file,
+            preexec_fn=os.setpgrp
+        )
+    time.sleep(5)
+    return_code = process.poll()
+    if return_code == None: 
+        print(Fore.MAGENTA + "\nOpen http://127.0.0.1:8050/ in your browser\n")
+        return process    
+    else:
+        print(Fore.RED + "\nSome thing went wrong. Please check the /dashboard/error.log file !")
 
 def kill_process(process):
     os.killpg(os.getpgid(process.pid), signal.SIGKILL)

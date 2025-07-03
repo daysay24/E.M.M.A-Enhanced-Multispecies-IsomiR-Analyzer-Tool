@@ -173,9 +173,13 @@ H4 {
 }
 
 .Select--multi .Select-value {
-    color: #169873;
-    background-color: #FFFFFF;
+    color: #169873 !important;
+    background-color: #FFFFFF !important;
     border-color: #169873 !important;
+}
+
+.dash-table-container .previous-next-container {
+    text-align: left;
 }
 
 input[type="checkbox"] {
@@ -293,6 +297,11 @@ tooltip info
 .select-title {
     display: inline-block;
     font-weight: bold;
+}
+
+.export-btn-spinner-container {
+    display: flex;
+    justify-content: space-between;
 }
 
 /*

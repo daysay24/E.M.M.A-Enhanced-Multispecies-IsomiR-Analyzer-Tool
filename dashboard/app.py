@@ -23,10 +23,10 @@ app.layout = html.Div(
                         dcc.Dropdown(
                             id="page-selector",
                             options=[
-                                {"label": "Statistics Dashboard", "value": ""},
+                                {"label": "Statistics Dashboard", "value": "/"},
                                 {"label": "Target Prediction", "value": "target_prediction"},
                             ],
-                            value="statistics_dashboard",
+                            value="/",
                             persistence=True,
                             clearable=False,
                             searchable=False,
