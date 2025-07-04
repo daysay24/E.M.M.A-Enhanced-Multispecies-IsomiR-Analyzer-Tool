@@ -22,6 +22,7 @@ def print_menu():
     print("  1. Analyse isomiRs of a species")
     print("  2. Visualise multi-species")
     print("  3. Stop")
+    print("Or press Ctrl+C to force quit.")
 
 def get_non_empty_str_value(msg): 
     while True:   
@@ -203,7 +204,7 @@ def visualise_isomirs():
             ["python", "../dashboard/app.py"],
             stdout=log_file,
             stderr=log_file,
-            preexec_fn=os.setpgrp
+            # preexec_fn=os.setpgrp
         )
     time.sleep(5)
     return_code = process.poll()
