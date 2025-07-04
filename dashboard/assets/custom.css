@@ -179,7 +179,7 @@ H4 {
 }
 
 .dash-table-container .previous-next-container {
-    text-align: left;
+    text-align: left !important;
 }
 
 input[type="checkbox"] {

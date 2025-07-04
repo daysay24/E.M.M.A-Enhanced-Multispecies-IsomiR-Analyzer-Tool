@@ -6,11 +6,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 import plotly.io as pio
 import dash_daq as daq
-
-import numpy as np
 import pandas as pd
-import datetime
-from datetime import datetime as dt
 import pathlib
 import os 
 
@@ -215,6 +211,7 @@ def generate_control_card():
                     options=[{"label": v, "value": v} for v in ['svg', 'jpeg', 'pdf']],
                     value='svg'
                 ),
+                html.Br(),
                 html.Div(id="export-folder-tree"),
                 html.Div(className = "export-btn-spinner-container", children=[
                     html.Button('Download', id='export-btn'),
@@ -225,7 +222,7 @@ def generate_control_card():
                             dbc.Modal(
                                 [
                                     dbc.ModalHeader(dbc.ModalTitle("Export")),
-                                    dbc.ModalBody("Figures are exported successfully. Please check the /output/<species code>/graphs folders!"),
+                                    dbc.ModalBody("Figures are exported successfully. Please check the results as shown in the folder tree !"),
                                     dbc.ModalFooter(
                                         dbc.Button("Close", id="close", className="ms-auto", n_clicks=0, color="success")
                                     ),
@@ -1025,6 +1022,12 @@ def generate_folder_tree(selected_analysis_type, selected_figures, selected_expo
 
     return species_subfolders
 
+def is_figures_selected(selected_figures):
+    for selected_figure in selected_figures: 
+        if len(selected_figure) > 0:
+            return True 
+    return False
+
 # MAIN
 layout = html.Div(
         id="app-container",
@@ -1169,7 +1172,7 @@ def export(n_clicks_open, n_clicks_close, selected_format, selected_analysis_typ
 
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-    if triggered_id == 'export-btn' and selected_format:
+    if triggered_id == 'export-btn' and selected_format and is_figures_selected(selected_figures):
         export_figures(selected_analysis_type, selected_figures, stored_figures, selected_format)
         return not is_open
 
