@@ -175,12 +175,11 @@ def predict_target(data, selected_species, selected_group, selected_canonical, s
     # Create isomiRs fasta file filtered by canonical and isomiR type
     create_isomirs_fasta(data, selected_canonical, selected_isomir_type, output_path)
 
-    command = f"""miranda {os.path.abspath(f"{output_path}/isomiRs.fa")} \
-            {os.path.abspath(f"{INPUT_PATH}/{selected_species}/UTR.fa")} \
-            -sc 140 -en -20 -out /dev/stdout | \
-            grep ">>" | sed 's/>>//g' | \
-            cat <(echo "Seq1,Seq2,Tot Score,Tot Energy,Max Score,Max Energy,Strand,Len1,Len2,Positions" | tr "," "\\t") - \
-            > {os.path.abspath(f"{output_path}/targets.txt")}
+    command = f"""miranda {os.path.abspath(f"{output_path}/isomiRs.fa")} {os.path.abspath(f"{INPUT_PATH}/{selected_species}/UTR.fa")} -out {os.path.abspath(f"{output_path}/original_output.txt")} && \
+        grep ">>" {os.path.abspath(f"{output_path}/original_output.txt")} | sed 's/>>//g' | \
+        cat <(echo "Seq1,Seq2,Tot Score,Tot Energy,Max Score,Max Energy,Strand,Len1,Len2,Positions" | tr "," "\\t") - > {os.path.abspath(f"{output_path}/perTranscript.txt")} && \
+        grep "^>[^>]" {os.path.abspath(f"{output_path}/original_output.txt")} | sed 's/>//g' | \
+        cat <(echo "Seq1,Seq2,Score,Energy,Seq1 Start,Seq1 End,Seq2 Start,Seq2 End,Len,Seq1 Identity %,Seq2 Identity %" | tr "," "\\t") - > {os.path.abspath(f"{output_path}/perHit.txt")}
     """
     try:
         result = subprocess.run(command, shell=True, executable="/bin/bash", capture_output=True, text=True, check=True)
@@ -297,7 +296,7 @@ def visualise_miranda_output(n_clicks, selected_species, selected_groups, select
     if not selected_species or not selected_groups or not selected_canonical or not selected_isomir_type:
         return []
     else: 
-        output_path = get_miranda_output_path(selected_species, selected_groups, selected_canonical, selected_isomir_type) + '/targets.txt'
+        output_path = get_miranda_output_path(selected_species, selected_groups, selected_canonical, selected_isomir_type) + '/perTranscript.txt'
         if not os.path.exists(output_path):
             return html.P(f'Miranda target prediction not found for {selected_species}, {selected_groups}, {selected_canonical}, {selected_isomir_type}. Predict Target first then try again.')
         else:
