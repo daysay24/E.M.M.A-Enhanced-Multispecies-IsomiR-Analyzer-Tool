@@ -35,7 +35,7 @@ The outputs:
 2. Install [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) and create an seperate environment to run this program (optional but recommended). 
 
 ```
-conda create -n myenv -f environment.yml -c conda-forge -c bioconda
+conda env create -n myenv -f environment.yml
 ```
 
 ## Run the program
