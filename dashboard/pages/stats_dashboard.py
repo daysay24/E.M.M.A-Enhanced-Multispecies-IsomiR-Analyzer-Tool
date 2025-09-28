@@ -242,7 +242,7 @@ def generate_control_card():
 ###############
 # Number of graph calculation 
 def calculate_number_graphs(selected_analysis_type, selected_species_len, selected_groups_len): 
-    if selected_analysis_type in ["Canonical miRNAs & isomiRs (all groups)", "All isomiR types (charactised by nt)",  "3'isomiR types (charactised by nt)", "5'isomiR types (charactised by nt)"]:
+    if selected_analysis_type in ["Canonical miRNAs & isomiRs (all groups)", "All isomiR types (charactised by nt)",  "3'isomiR types (charactised by nt)", "5'isomiR types (charactised by nt)", 'IsomiR types (unique tags)', 'IsomiR types (rpm)']:
         return selected_species_len
     else: 
         return selected_species_len * selected_groups_len
@@ -264,7 +264,7 @@ def calculate_sizes(selected_analysis_type, selected_species_len, selected_group
     graph_subplot_width = ""
     graph_subplot_height = "100%"
 
-    if selected_groups_len == 1 or selected_analysis_type in ["Canonical miRNAs & isomiRs (all groups)", "All isomiR types (charactised by nt)",  "3'isomiR types (charactised by nt)", "5'isomiR types (charactised by nt)"] or selected_graph_type == 'bar': 
+    if selected_groups_len == 1 or selected_analysis_type in ["Canonical miRNAs & isomiRs (all groups)", "All isomiR types (charactised by nt)",  "3'isomiR types (charactised by nt)", "5'isomiR types (charactised by nt)"] or (selected_graph_type == 'bar' and selected_analysis_type in ['IsomiR types (unique tags)', 'IsomiR types (rpm)']): 
         if graph_number == 1:  
             graph_container_width = "100%"
             graph_container_height = "100%"
@@ -310,7 +310,8 @@ def generate_individual_graph_1(selected_analysis_type, species, groups, sizes, 
             y=df_sub['rpm'],
             mode='lines+markers',
             name=trace_type,
-            line=dict(color=legend_item_color.get(trace_type, 'pink'))  # fallback to default Plotly blue
+            line=dict(color=legend_item_color.get(trace_type, 'pink')),
+            marker=dict(size=20)
         ))
 
     # Update layout
@@ -350,7 +351,7 @@ def generate_individual_graph_1(selected_analysis_type, species, groups, sizes, 
 
     # Figure name 
     groups.sort()
-    fig_name = f'{selected_analysis_type}:{species}:{"_".join(groups)}'
+    fig_name = f'{selected_analysis_type}:{species}:{"_".join(groups)}' + '|' +''.join(selected_legend_items)
     figures[fig_name] = fig
 
     return  {
@@ -408,7 +409,7 @@ def generate_individual_graph_2_pie(selected_analysis_type, species, group, size
     )
 
     # Figure name 
-    fig_name = f'{selected_analysis_type}:{species}:{group}'
+    fig_name = f'{selected_analysis_type}:{species}:{group}' + '|' +''.join(selected_legend_items) + 'pie'
     figures[fig_name] = fig
 
     return  {
@@ -466,7 +467,7 @@ def generate_individual_graph_2_bar(selected_analysis_type, species, groups, siz
             l=2,
             r=20
         ),
-        yaxis=dict(title='<b>Percentage</b>', ticksuffix='%'),
+        yaxis=dict(title='<b>%</b>'),
         xaxis=dict(title=''),
         barmode='stack',
         plot_bgcolor='white',
@@ -492,7 +493,7 @@ def generate_individual_graph_2_bar(selected_analysis_type, species, groups, siz
     
     # Figure name 
     groups.sort()
-    fig_name = f'{selected_analysis_type}:{species}:{"_".join(groups)}'
+    fig_name = f'{selected_analysis_type}:{species}:{"_".join(groups)}' + '|' +''.join(selected_legend_items) + 'bar'
     figures[fig_name] = fig
 
     return  {
@@ -551,7 +552,7 @@ def generate_individual_graph_3(selected_analysis_type, species, groups, sizes, 
             l=2,
             r=20
         ),
-        yaxis=dict(title='<b>Percentage</b>', ticksuffix='%'),
+        yaxis=dict(title='<b>%</b>'),
         xaxis=dict(title=''),
         barmode='stack',
         plot_bgcolor='white',
@@ -577,7 +578,7 @@ def generate_individual_graph_3(selected_analysis_type, species, groups, sizes, 
     
     # Figure name 
     groups.sort()
-    fig_name = f'{selected_analysis_type}:{species}:{"_".join(groups)}'
+    fig_name = f'{selected_analysis_type}:{species}:{"_".join(groups)}' + '|' +''.join(selected_legend_items)
     figures[fig_name] = fig
 
     return  {
@@ -661,7 +662,7 @@ def generate_individual_graph_4(selected_analysis_type, species, group, sizes, s
     )
 
     # Figure name 
-    fig_name = f'{selected_analysis_type}:{species}:{group}'
+    fig_name = f'{selected_analysis_type}:{species}:{group}' + '|' +''.join(selected_legend_items)
     figures[fig_name] = fig
 
     return  {
@@ -724,7 +725,7 @@ def generate_individual_graph_5(selected_analysis_type, species, group, sizes, s
             l=2,
             r=20
         ),
-        yaxis=dict(title=f'<b>{y_title}</b>', ticksuffix='%'),
+        yaxis=dict(title=f'<b>{y_title}</b>'),
         xaxis=dict(title='<b>Position</b>'),
         legend_title="Type",
         barmode='stack',
@@ -746,10 +747,11 @@ def generate_individual_graph_5(selected_analysis_type, species, group, sizes, s
         ticks='outside',
         showline=True,
         linecolor='black',
-        gridcolor='lightgrey'
+        gridcolor='lightgrey',
+        tickformat=""
     )
 
-    fig_name = f'{selected_analysis_type}:{species}:{group}'
+    fig_name = f'{selected_analysis_type}:{species}:{group}' + '|' +''.join(selected_legend_items)
     figures[fig_name] = fig
 
     return  {
@@ -784,6 +786,12 @@ def generate_individual_graph_6(selected_analysis_type, species, group, sizes, s
     # Create traces
     traces = []
     for templated_category, grouped in df.groupby('templated'):
+        extended_position = int(len(data[~is_numeric])/len(selected_legend_items))
+
+        custom_order = [f"5'+{i}" for i in range(extended_position, 0, -1)] + [str(i+1) for i in range(max_position)] 
+        grouped["position"] = pd.Categorical(grouped["position"], categories=custom_order, ordered=True)
+        grouped = grouped.sort_values("position")
+
         traces.append(go.Bar(
             x=grouped['position'],
             y=grouped['count'],
@@ -829,7 +837,7 @@ def generate_individual_graph_6(selected_analysis_type, species, group, sizes, s
         gridcolor='lightgrey'
     )
     
-    fig_name = f'{selected_analysis_type}:{species}:{group}'
+    fig_name = f'{selected_analysis_type}:{species}:{group}' + '|' +''.join(selected_legend_items)
     figures[fig_name] = fig
 
     return  {
@@ -986,7 +994,7 @@ def export_figures(selected_analysis_type, selected_figures, stored_figures, sel
             for selected_figure in selected_figure_set:
                 selected_figure_names = selected_figure.split(':')
                 species = selected_figure_names[1]
-                group = selected_figure_names[2]
+                group = selected_figure_names[2].split("|")[0]
                 fig = stored_figures[selected_figure]
             
                 figure_path = f'{OUTPUT_PATH}/{species}/graphs/{selected_analysis_type}/{group}'
@@ -1002,7 +1010,7 @@ def generate_folder_tree(selected_analysis_type, selected_figures, selected_expo
             group_subfolders = []
 
             for selected_figure in selected_figure_set: 
-                group = selected_figure.split(":")[2]
+                group = selected_figure.split(":")[2].split("|")[0]
                 group_subfolders.append(
                     html.Div([html.Span(group, className="folder fa fa-folder-o"), html.Span(f"Figure.{selected_export_format}", className="file fa fa-file-excel-o")], className="foldercontainer")
                 )

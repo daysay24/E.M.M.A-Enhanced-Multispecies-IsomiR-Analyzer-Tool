@@ -1,4 +1,4 @@
-name: myenv
+name: emmaenv
 channels:
   - conda-forge
   - bioconda
@@ -16,5 +16,6 @@ dependencies:
   - miranda
   - bedtools
   - pip
+  - openpyxl
   - pip:
       - kaleido
