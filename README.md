@@ -38,6 +38,11 @@ The outputs:
 conda env create -n emmaenv -f environment.yml
 ```
 
+3. Activate the conda environment. 
+```
+conda activate emmaenv
+```
+
 ## Run the program
 
 1. Open a terminal in this project directory and run the main program: 
@@ -54,7 +59,7 @@ python main.py
 
 - Place all output files from isomiR-SEA in one folder. In this folder, there can be one or multiple subfolders, each represents a group (e.g treatment, stage, time points, etc.) which contains one or more replicates. 
 
-    For example: We provided an example folder /input/mmu/isomiR-SEA_outputs. There are 2 time points (D0 and 18hr). Each group has two replicates: D0 includes D0_rpt1.txt and D0_rpt2.txt and 18hr includes 18hr_rpt1.txt and 18hr_rpt2.txt. An additional example folder /input/s.jap/.
+    For example: We provided an example folder /input/mmu/isomiR-SEA_outputs. There are 2 time points (D0 and 18hr). Each group has two replicates: D0 includes D0_rpt1.txt and D0_rpt2.txt and 18hr includes 18hr_rpt1.txt and 18hr_rpt2.txt. 
 
     An additional example folder /input/s.jap/isomiR-SEA_outputs has also been provided.
 
