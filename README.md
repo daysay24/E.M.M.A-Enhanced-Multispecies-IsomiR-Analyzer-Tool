@@ -89,11 +89,6 @@ We provide example datasets organized by species inside the `input/` directory. 
 
     ```
 
-### Data Origin:**
-The example datasets are derived from publicly available small RNA-seq data fetched from the NCBI Gene Expression Omnibus (GEO) database:
-- Human Data (`hsa`): GSE298998
-- Mouse Data (`mmu`): GSE263895
-
 - Ensure the genome file and miRNA annotation file are compatible.
 
 - Read count threshold: The minimum average count of an isomiR across all replicates. IsomiRs with average counts below this threshold will not be included in downstream analyses.
@@ -103,5 +98,10 @@ The custom excel file from users must have _chr_, _name_, _start_, _end_, _stran
 
 - Match gff to genome: Y/y (match the chromosome names between the genome file and the miRNA annotation file) and N/n (skip this step, assuming the chromosome names already match)
 If the chromosome names in both files are already identical, it is recommended to set match_chr_names to False to save computational time.
+
+## Data Origin:
+The example datasets are derived from publicly available small RNA-seq data fetched from the NCBI Gene Expression Omnibus (GEO) database:
+- Human Data (`hsa`): GSE298998
+- Mouse Data (`mmu`): GSE263895
 
   
