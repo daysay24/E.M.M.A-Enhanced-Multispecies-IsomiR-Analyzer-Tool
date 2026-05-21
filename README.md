@@ -55,25 +55,44 @@ python main.py
 
 ## Input and Parameter Options
 
-- Ensure you provide all required files as instructed.
+- Ensure you provide all required files as instructed. These include isomiR-SEA output txt files, genomic.fa, UTR.fa, and miRNA_annotation file in GFF3 format. 
 
 - Place all output files from isomiR-SEA in one folder. In this folder, there can be one or multiple subfolders, each represents a group (e.g treatment, stage, time points, etc.) which contains one or more replicates. 
 
-    For example: We provided an example folder /input/mmu/isomiR-SEA_outputs. There are 2 time points (D0 and 18hr). Each group has two replicates: D0 includes D0_rpt1.txt and D0_rpt2.txt and 18hr includes 18hr_rpt1.txt and 18hr_rpt2.txt. 
+    ### Example Input Datasets
+We provide example datasets organized by species inside the `input/` directory. Each species folder contains an `isomiR-SEA_outputs/` directory split into biological groups, the user must provide genomic, UTR and miR_annotation files:
 
     An additional example folder /input/s.jap/isomiR-SEA_outputs has also been provided.
 
     ```
     ./input
+        /hsa
+            /isomiR-SEA_outputs
+                /control
+                    /SRR33820124 out_result_mature_21_tag_unique.txt
+                    /SRR33830125 out_result_mature_21_tag_unique.txt
+                /test
+                    /SRR3380122 out_result_mature_21_tag_unique.txt
+                    /SRR33830123 out_result_mature_21_tag_unique.txt
         /mmu
             /isomiR-SEA_outputs
-                /18hr
-                    /18hr_rpt1.txt
-                    /18hr_rpt2.txt
-                /D0
-                    /D0_rpt1.txt
-                    /D0_rpt2.txt
+                /control
+                    /un_rpt1.txt
+                    /un_rpt2.txt
+                    /un_rpt3.txt
+                    /un_rpt3.txt
+                /test
+                    /6hr_rpt1.tct
+                    /6hr_rpt2.txt
+                    /6hr_rpt3.txt
+                    /6hr_rpt4.txt
+
     ```
+
+### Data Origin:**
+The example datasets are derived from publicly available small RNA-seq data fetched from the NCBI Gene Expression Omnibus (GEO) database:
+- Human Data (`hsa`): GSE298998
+- Mouse Data (`mmu`): GSE263895
 
 - Ensure the genome file and miRNA annotation file are compatible.
 
