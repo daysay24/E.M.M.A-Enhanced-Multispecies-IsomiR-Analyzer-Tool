@@ -15,6 +15,24 @@ import process_graph_data
 from colorama import Fore, Style, init
 init(autoreset=True)
 
+def remove_ds_store_files():
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    removed_count = 0
+
+    for folder_path, _, file_names in os.walk(project_root):
+        if ".DS_Store" not in file_names:
+            continue
+
+        ds_store_path = os.path.join(folder_path, ".DS_Store")
+        try:
+            os.remove(ds_store_path)
+            removed_count += 1
+        except OSError as e:
+            print(Fore.RED + f"Could not delete {ds_store_path}: {e}")
+
+    if removed_count:
+        print(Fore.GREEN + f"Removed {removed_count} .DS_Store file(s).")
+
 def print_menu():
     print(Fore.CYAN + "\nWelcome to the isomiR Analyzer Tool")
     print("=" * 40)
@@ -226,6 +244,7 @@ def is_visualisation_process_stopped(process):
         return False
 
 if __name__ == "__main__":
+    remove_ds_store_files()
     process = None
     while True: 
         print_menu()
