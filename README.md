@@ -12,7 +12,7 @@ The outputs:
 
 - Additional information added to the existing output files of the isomiR-SEA software, including annotation, the number of nucleotide differences at each end, and the number of SNPs. We also provide a simplified unique naming system, categorisation, and visualisation of isomiRs.
 
-- A set of visualisations that provide insights into the isomiR data:
+- A set of visualisations that provide insights into the isomiR data for multiple species:
 
   Graph 1: RPM and relative abundance of isomiRs vs miRNAs in different groups, with a canonical:isomiR ratio for each group.
 
@@ -25,6 +25,8 @@ The outputs:
   Graph 5: Proportion of nucleotides (A, U, C, G) at addition positions in different groups.
 
   Graph 6: Proportion of templated vs nontemplated at all positions for all isomiRs in different groups.
+
+- Target prediction and visualisation for any selected species, groups, canonical miRNAs and isomiR types. 
 
 ![Demo visualisation](./img/demo.gif)
 
@@ -60,34 +62,69 @@ python main.py
 - Place all output files from isomiR-SEA in one folder. In this folder, there can be one or multiple subfolders, each represents a group (e.g treatment, stage, time points, etc.) which contains one or more replicates. 
 
     ### Example Input Datasets
-We provide example datasets organized by species inside the `input/` directory. Each species folder contains an `isomiR-SEA_outputs/` directory split into biological groups, the user must provide genomic, UTR and miR_annotation files:
+We provide _example datasets_ organized by species so you can put them inside the `input/` directory. 
 
-    An additional example folder /input/s.jap/isomiR-SEA_outputs has also been provided.
+Each species folder contains an `isomiR-SEA_outputs/` directory split into biological groups, the user must also provide genomic, UTR and miR_annotation files: 
 
-    ```
-    ./input
-        /hsa
-            /isomiR-SEA_outputs
-                /control
-                    /SRR33820124 out_result_mature_21_tag_unique.txt
-                    /SRR33830125 out_result_mature_21_tag_unique.txt
-                /test
-                    /SRR3380122 out_result_mature_21_tag_unique.txt
-                    /SRR33830123 out_result_mature_21_tag_unique.txt
-        /mmu
-            /isomiR-SEA_outputs
-                /control
-                    /un_rpt1.txt
-                    /un_rpt2.txt
-                    /un_rpt3.txt
-                    /un_rpt3.txt
-                /test
-                    /6hr_rpt1.tct
-                    /6hr_rpt2.txt
-                    /6hr_rpt3.txt
-                    /6hr_rpt4.txt
 
-    ```
+```text
+input/
+├── hsa/
+│   ├── genomic.fa
+│   ├── UTR.fa
+│   ├── miRNA_annotation.gff3
+│   └── isomiR-SEA_outputs/
+│       ├── control/
+│       │   ├── SRR33820124 out_result_mature_21_tag_unique.txt
+│       │   └── SRR33830125 out_result_mature_21_tag_unique.txt
+│       └── test/
+│           ├── SRR3380122 out_result_mature_21_tag_unique.txt
+│           └── SRR33830123 out_result_mature_21_tag_unique.txt
+├── mmu/
+│   ├── genomic.fa
+│   ├── UTR.fa
+│   ├── miRNA_annotation.gff3
+│   └── isomiR-SEA_outputs/
+│       ├── control/
+│       │   ├── un_rpt1.txt
+│       │   ├── un_rpt2.txt
+│       │   ├── un_rpt3.txt
+│       │   └── un_rpt4.txt
+│       └── test/
+│           ├── 6hr_rpt1.txt
+│           ├── 6hr_rpt2.txt
+│           ├── 6hr_rpt3.txt
+│           └── 6hr_rpt4.txt
+└── s.jap/
+    ├── genomic.fa
+    ├── UTR.fa
+    ├── miRNA_annotation.xlsx
+    └── isomiR-SEA_outputs/
+        ├── 14hr_Female/
+        │   ├── SJ-female-14-3.txt
+        │   ├── SJ_female_14_1.txt
+        │   └── SJ_female_14_2.txt
+        ├── 14hr_Male/
+        │   ├── SJ-male-14-1.txt
+        │   ├── SJ-male-14-2.txt
+        │   └── SJ-male-14-3.txt
+        ├── 16hr_Female/
+        │   ├── SJ-female-16-1.txt
+        │   ├── SJ-female-16-2.txt
+        │   └── SJ-female-16-3.txt
+        ├── 16hr_Male/
+        │   ├── SJ-male-16-1.txt
+        │   ├── SJ-male-16-2.txt
+        │   └── SJ-male-16-3.txt
+        ├── 18hr_Female/
+        │   ├── SJ-female-18-3.txt
+        │   ├── SJ_female_18_1.txt
+        │   └── SJ_female_18_2.txt
+        └── 18hr_Male/
+            ├── SJ-male-18-1.txt
+            ├── SJ-male-18-2.txt
+            └── SJ-male-18-3.txt
+```
 
 - Ensure the genome file and miRNA annotation file are compatible.
 
@@ -103,5 +140,6 @@ If the chromosome names in both files are already identical, it is recommended t
 The example datasets are derived from publicly available small RNA-seq data fetched from the NCBI Gene Expression Omnibus (GEO) database:
 - Human Data (`hsa`): GSE298998
 - Mouse Data (`mmu`): GSE263895
+
 
   

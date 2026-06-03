@@ -1,8 +1,10 @@
 import dash_bootstrap_components as dbc
-from dash import dcc, html, Input, Output, State, callback_context, callback, register_page, dash_table 
+from dash import dcc, html, Input, Output, State, callback_context, callback, register_page, dash_table, no_update
 import pandas as pd
 import pathlib
-import os 
+import os
+import io
+import hashlib
 import subprocess
 
 register_page(__name__, "/target_prediction")
@@ -110,7 +112,7 @@ def generate_control_card():
                             dbc.Modal(
                                 [
                                     dbc.ModalHeader(dbc.ModalTitle("Export")),
-                                    dbc.ModalBody("Target prediction done. Please check the /output/<species code>/9_target_prediction folders !"),
+                                    dbc.ModalBody(id="modal-body-msg", children="Target prediction done. Please check the /output/<species code>/9_target_prediction folders !"),
                                     dbc.ModalFooter(
                                         dbc.Button("Close", id="close", className="ms-auto", n_clicks=0, color="success")
                                     ),
@@ -164,30 +166,144 @@ def create_isomirs_fasta(data, selected_canonical, selected_isomir_type, output_
             fa_file.write(f">{r['annotation'].replace('U', 'T')} {r['type']}\n{r['tag_sequence'].replace('U', 'T')}\n")
 
 def get_miranda_output_path(selected_species, selected_group, selected_canonical, selected_isomir_type):
-    selected_canonical.sort()
-    selected_isomir_type.sort()
-    return f"{OUTPUT_PATH}/{selected_species}/9_target_prediction/{selected_group}/{'+'.join(selected_canonical)}/{'+'.join(selected_isomir_type)}"
+    sorted_canonical = sorted(selected_canonical)
+    sorted_types = sorted(selected_isomir_type)
+
+    output_path = f"{OUTPUT_PATH}/{selected_species}/9_target_prediction/{selected_group}/{'+'.join(selected_canonical)}/{'+'.join(selected_isomir_type)}"
+    longest_path = f"{output_path}/skipped_invalid_UTR.txt"
+    path_parts = pathlib.Path(longest_path).parts
+    long_parts = [part for part in path_parts if len(part.encode()) > 240]
+
+    if len(longest_path.encode()) > 240 or long_parts:
+        raise RuntimeError(
+            "The selected canonical miRNA and isomiR types create an output path that is too long. "
+            "Please select fewer canonical miRNAs or fewer isomiR types, then run target prediction again."
+        )
+
+    return output_path
+
+def create_clean_utr_fasta(input_utr_path, output_path):
+    clean_utr_path = f"{output_path}/UTR.cleaned.fa"
+    skipped_log_path = f"{output_path}/skipped_invalid_UTR.txt"
+    valid_bases = set("ACGTUNacgtun")
+    skipped_records = []
+    written_count = 0
+
+    def write_record(clean_file, header, sequence_lines):
+        nonlocal written_count
+
+        if not header:
+            return
+
+        sequence = "".join(line.strip() for line in sequence_lines)
+        invalid_chars = sorted(set(sequence) - valid_bases)
+
+        if not sequence or invalid_chars:
+            skipped_records.append((header, "".join(invalid_chars) or "empty sequence"))
+            return
+
+        clean_file.write(f"{header}\n")
+        for line in sequence_lines:
+            clean_file.write(f"{line.strip().replace('U', 'T').replace('u', 't')}\n")
+        written_count += 1
+
+    with open(input_utr_path) as input_file, open(clean_utr_path, "w") as clean_file:
+        header = None
+        sequence_lines = []
+
+        for line in input_file:
+            line = line.strip()
+            if not line:
+                continue
+
+            if line.startswith(">"):
+                write_record(clean_file, header, sequence_lines)
+                header = line
+                sequence_lines = []
+            else:
+                sequence_lines.append(line)
+
+        write_record(clean_file, header, sequence_lines)
+
+    if skipped_records:
+        with open(skipped_log_path, "w") as skipped_log:
+            skipped_log.write("header\tinvalid_characters\n")
+            for header, invalid_chars in skipped_records:
+                skipped_log.write(f"{header[1:]}\t{invalid_chars}\n")
+
+        print(
+            f"Skipped {len(skipped_records)} invalid UTR record(s). "
+            f"Details written to {skipped_log_path}",
+            flush=True
+        )
+    elif os.path.exists(skipped_log_path):
+        os.remove(skipped_log_path)
+
+    if written_count == 0:
+        raise RuntimeError("No valid UTR records found after cleaning.")
+
+    return clean_utr_path
+
+def parse_miranda_output(output_path):
+    """Parse miranda original_output.txt into perTranscript.txt and perHit.txt using Python."""
+    transcript_header = "Seq1\tSeq2\tTot Score\tTot Energy\tMax Score\tMax Energy\tStrand\tLen1\tLen2\tPositions\n"
+    hit_header = "Seq1\tSeq2\tScore\tEnergy\tSeq1 Start\tSeq1 End\tSeq2 Start\tSeq2 End\tLen\tSeq1 Identity %\tSeq2 Identity %\n"
+
+    transcript_lines = []
+    hit_lines = []
+
+    with open(f"{output_path}/original_output.txt") as f:
+        for line in f:
+            if line.startswith('>>'):
+                transcript_lines.append(line[2:])
+            elif line.startswith('>'):
+                hit_lines.append(line[1:])
+
+    with open(f"{output_path}/perTranscript.txt", 'w') as f:
+        f.write(transcript_header)
+        f.writelines(transcript_lines)
+
+    with open(f"{output_path}/perHit.txt", 'w') as f:
+        f.write(hit_header)
+        f.writelines(hit_lines)
+
 
 def predict_target(data, selected_species, selected_group, selected_canonical, selected_isomir_type):
     # Output path
     output_path = get_miranda_output_path(selected_species, selected_group, selected_canonical, selected_isomir_type)
-    
+
     # Create isomiRs fasta file filtered by canonical and isomiR type
     create_isomirs_fasta(data, selected_canonical, selected_isomir_type, output_path)
 
-    command = f"""miranda {os.path.abspath(f"{output_path}/isomiRs.fa")} {os.path.abspath(f"{INPUT_PATH}/{selected_species}/UTR.fa")} -out {os.path.abspath(f"{output_path}/original_output.txt")} && \
-        grep ">>" {os.path.abspath(f"{output_path}/original_output.txt")} | sed 's/>>//g' | \
-        cat <(echo "Seq1,Seq2,Tot Score,Tot Energy,Max Score,Max Energy,Strand,Len1,Len2,Positions" | tr "," "\\t") - > {os.path.abspath(f"{output_path}/perTranscript.txt")} && \
-        grep "^>[^>]" {os.path.abspath(f"{output_path}/original_output.txt")} | sed 's/>//g' | \
-        cat <(echo "Seq1,Seq2,Score,Energy,Seq1 Start,Seq1 End,Seq2 Start,Seq2 End,Len,Seq1 Identity %,Seq2 Identity %" | tr "," "\\t") - > {os.path.abspath(f"{output_path}/perHit.txt")}
-    """
-    try:
-        result = subprocess.run(command, shell=True, executable="/bin/bash", capture_output=True, text=True, check=True)
-        print("miRanda completed successfully.")
-        print(result.stdout)
-    except subprocess.CalledProcessError as e:
-        print("Error running miRanda:")
-        print(e.stderr)
+    clean_utr_path = create_clean_utr_fasta(
+        f"{INPUT_PATH}/{selected_species}/UTR.fa",
+        output_path
+    )
+
+    miranda_cmd = (
+        f"miranda {os.path.abspath(f'{output_path}/isomiRs.fa')}"
+        f" {os.path.abspath(clean_utr_path)}"
+        f" -out {os.path.abspath(f'{output_path}/original_output.txt')}"
+    )
+    result = subprocess.run(miranda_cmd, shell=True, capture_output=True, text=True)
+    if result.stderr:
+        print("miRanda stderr:", result.stderr[:500])
+
+    original_out = f"{output_path}/original_output.txt"
+    if result.returncode != 0:
+        error_message = result.stderr.strip() or "miRanda failed without an error message."
+        print(f"miRanda failed with exit code {result.returncode}: {error_message}", flush=True)
+
+        if os.path.exists(original_out):
+            os.remove(original_out)
+            print(f"Deleted partial miRanda output: {original_out}", flush=True)
+
+        raise RuntimeError(f"miRanda failed with exit code {result.returncode}: {error_message}")
+
+    if not os.path.exists(original_out) or os.path.getsize(original_out) == 0:
+        raise RuntimeError(f"miRanda produced no output (exit {result.returncode}): {result.stderr.strip()}")
+
+    parse_miranda_output(output_path)
 
 @callback(
     Output("group-select-target", "options"),
@@ -250,36 +366,40 @@ def disable_btn(selected_species, selected_group, selected_canonical, selected_i
         return False
 
 @callback(
-    Output("modal-target", "is_open"),
+    [Output("modal-target", "is_open"), Output("modal-body-msg", "children")],
     [
         Input('export-btn', 'n_clicks'),
         Input("close", "n_clicks")
     ],
-    [   
+    [
         State('data', 'data'),
         State('species-select-target', 'value'),
         State('group-select-target', 'value'),
         State('canonical-select', 'value'),
         State('isomir-type-select', 'value'),
         State("modal-target", "is_open")
-    ]
+    ],
+    prevent_initial_call=True
 )
 def export(n_clicks_open, n_clicks_close, data, selected_species, selected_group, selected_canonical, selected_isomir_type, is_open):
-    ctx = callback_context  # or `ctx = ctx` if using Dash 2.4+
+    ctx = callback_context
 
     if not ctx.triggered:
-        return is_open
+        return is_open, no_update
 
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
     if triggered_id == 'export-btn' and selected_species and selected_group and selected_canonical and selected_isomir_type:
-        predict_target(pd.read_json(data), selected_species, selected_group, selected_canonical, selected_isomir_type)
-        return not is_open
+        try:
+            predict_target(pd.read_json(io.StringIO(data)), selected_species, selected_group, selected_canonical, selected_isomir_type)
+            return True, "Target prediction done. Please check the /output/<species code>/9_target_prediction folders !"
+        except Exception as e:
+            return True, f"Error running target prediction: {e}"
 
     elif triggered_id == 'close':
-        return not is_open
+        return False, no_update
 
-    return is_open
+    return is_open, no_update
 
 @callback(
     Output('right-column-target', 'children'),
@@ -320,6 +440,3 @@ def visualise_miranda_output(n_clicks, selected_species, selected_groups, select
                     "fontWeight": "bold"
                 }
             )
-
-
-    
