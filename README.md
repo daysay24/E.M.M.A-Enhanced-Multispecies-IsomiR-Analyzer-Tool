@@ -2,7 +2,7 @@
 
 ## Authors
 
-Emma Nguyen, Dayna Sais
+Emma Nguyen, Dayna Sais, Nham Tran
 
 ## Description
 
