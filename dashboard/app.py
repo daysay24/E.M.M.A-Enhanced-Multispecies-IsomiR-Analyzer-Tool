@@ -1,3 +1,4 @@
+import os
 import dash
 from dash import Dash, dcc, html, Input, Output, callback, page_container
 import dash_bootstrap_components as dbc
@@ -51,4 +52,8 @@ def navigate(value):
     return value
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(
+        host=os.getenv("DASH_HOST", "127.0.0.1"),
+        port=int(os.getenv("DASH_PORT", "8050")),
+        debug=os.getenv("DASH_DEBUG", "true").lower() == "true",
+    )
